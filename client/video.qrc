@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>launch.avi</file>
+    </qresource>
+</RCC>
