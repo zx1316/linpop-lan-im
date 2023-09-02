@@ -1,37 +1,12 @@
 # LinpopMiHoYoAutoLauncher
 
 #### 介绍
-bit破防小学期6人组队搞出来的满是bug的即时通讯软件，答辩结束后修复了部分bug并加上整活部分后上传到此仓库，保证能及格，不对软件质量做任何保证。
+bit破防小学期6人组队搞出来的满是bug的局域网即时通讯软件，答辩结束后修复了部分bug并加上整活部分后上传到此仓库，保证能及格，不对软件质量做任何保证。
 
 #### 软件架构
-软件架构说明
-
-
-#### 安装教程
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
+一个客户端，一个服务端，架构是依托答辩
 
 #### 使用说明
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### 参与贡献
-
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
-
-
-#### 特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+1.  下载客户端和服务端的发行版
+2.  客户端解压后直接运行，服务端只需要在局域网中的任意一台电脑上运行即可
+3.  客户端在设置中设置好服务端电脑的IP和开服的端口即可注册/登录
