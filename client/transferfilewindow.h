@@ -18,7 +18,6 @@
 #include <QThread>
 #include <QMessageBox>
 #include "sendthread.h"
-#include "filesendbackground.h"
 
 namespace Ui {
 class TransferFileWindow;
