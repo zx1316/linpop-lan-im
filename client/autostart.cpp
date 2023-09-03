@@ -63,7 +63,7 @@ void autoStart(QWidget *parent) {
         }
     }
     if (giPath == "" && srPath == "") {
-        QMessageBox::question(parent, "悲报", "你的电脑中没有安装原神或崩铁，即将自动下载原神", "立刻下载", "或者下载");
+//        QMessageBox::question(parent, "悲报", "你的电脑中没有安装原神或崩铁，即将自动下载原神", "立刻下载", "或者下载");
         // 这个地方想必是不能自动获取最新的下载链接，过几个星期不知道还能不能下，再说吧
         QDesktopServices::openUrl(QUrl("https://ys-api.mihoyo.com/event/download_porter/link/ys_cn/official/pc_backup205;"));
     } else {
