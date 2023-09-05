@@ -9,16 +9,15 @@
 #include "QStandardPaths"
 #include "QProcess"
 #include "QDesktopServices"
-#include "autostart.h"
 
 bool compareFriends(Friend* f1,Friend* f2) {
     return *f2<*f1;
 }
 
 
-IndexWindow::IndexWindow(QString username,QString ip,RequestToServer* client,QWidget *parent) :
+IndexWindow::IndexWindow(QString username,QString ip,RequestToServer* client, MiHoYoLauncher *launcher, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::IndexWindow)
+    ui(new Ui::IndexWindow), launcher(launcher)
 {
     qDebug("New a IndexWindow Here");
     ui->setupUi(this);
@@ -76,7 +75,7 @@ IndexWindow::IndexWindow(QString username,QString ip,RequestToServer* client,QWi
     });
     connect(ui->secretButton, &QPushButton::clicked, this, [=]{
         QMessageBox::information(this, "", "你说得对，但是《计算机专业基础实习》是北xxx大学自主研发的一款全新小学期课程，课程发生在一个被称作「理科教学楼」的幻想世界，在这里，被老师选中的人将被授予「Qt Creator」，引导C++之力。你将扮演一位名为「码农」的神秘角色，在自由的上课中邂逅性格各异、能力独特的同伴们，和他们一起编写bug，问候大家的亲人——同时，逐步发掘「007」的真相😅");
-        autoStart(this);
+        launcher->directLaunch();
     });
 }
 //以下这段实现按钮的接口
@@ -89,12 +88,12 @@ IndexWindow::IndexWindow(QString username,QString ip,RequestToServer* client,QWi
  * 作者：林方裕
  */
 void IndexWindow::onAddFriendButtonClicked(){
-    gachaAutoStart(this);
+    launcher->gachaLaunch();
     if(_add_friends_window!=nullptr){
         _add_friends_window->show();
         return;
     }
-    _add_friends_window = new AddFriendsWindow();
+    _add_friends_window = new AddFriendsWindow(launcher);
     connect(_add_friends_window,&AddFriendsWindow::addFriendRequestSignal,this,&IndexWindow::onAddFriendRequestSignal);
     connect(_add_friends_window,&AddFriendsWindow::closeWindowSignal,this,&IndexWindow::onCloseWindow);
     _add_friends_window->show();
@@ -108,12 +107,12 @@ void IndexWindow::onAddFriendButtonClicked(){
  * 作者：林方裕
  */
 void IndexWindow::onCreateGroupButtonClicked(){
-    gachaAutoStart(this);
+    launcher->gachaLaunch();
     if(_create_group_window!=nullptr){
         _create_group_window->show();
         return;
     }
-    _create_group_window =new CreateGroupWindow(_friend_list);
+    _create_group_window =new CreateGroupWindow(_friend_list, launcher);
     connect(_create_group_window,&CreateGroupWindow::createGroupRequestSignal,this,&IndexWindow::onCreateGroupRequestSignal);
     connect(_create_group_window,&CreateGroupWindow::closeWindowSignal,this,&IndexWindow::onCloseWindow);
     _create_group_window->show();
@@ -124,10 +123,10 @@ void IndexWindow::onCreateGroupButtonClicked(){
  * 功能描述：打开好友聊天界面
  */
 void IndexWindow::onChatWithFriendSignal(FriendInformation* fi){
-    gachaAutoStart(this);
+    launcher->gachaLaunch();
     auto find_result = _chat_windows.find(fi->username());
     if(find_result ==_chat_windows.end()){
-        ChatWindow* chat_window = new ChatWindow(ui->username_label->text(),fi->username(),fi->_real);
+        ChatWindow* chat_window = new ChatWindow(ui->username_label->text(),fi->username(),fi->_real, launcher);
         _chat_windows.insert(fi->username(),chat_window);
         onChatRecentRecordRequestSignal(fi->username());
         connect(chat_window,&ChatWindow::sendMessageRequestSignal,this,&IndexWindow::onSendMessageRequestSignal);
@@ -145,7 +144,7 @@ void IndexWindow::onChatWithFriendSignal(FriendInformation* fi){
  * 功能描述：删除好友，引起信息框。在消息框再点击确定后，调用客户端网络相应函数向服务器发送请求。该函数由connect信号调用。
  */
 void IndexWindow::onDeleteFriendSignal(FriendInformation* fi){
-    gachaAutoStart(this);
+    launcher->gachaLaunch();
     if(QMessageBox::question(this,tr("删除好友"),tr("确定要删除该好友吗？"),QMessageBox::Yes,QMessageBox::No)==QMessageBox::Yes){
         qDebug("IndexWindow delete Friend Request");
         qDebug()<<fi->_real;
@@ -222,7 +221,7 @@ void IndexWindow::onCreateGroupRequestSignal(QString group_name,QVector<QString>
             break;
         _create_group_window->onCreateGroupFeedbackSignal(2,s);
         _create_group_window->close();
-        _create_group_window = new CreateGroupWindow(_friend_list);
+        _create_group_window = new CreateGroupWindow(_friend_list, launcher);
         _create_group_window->show();
         return;
         }
@@ -336,7 +335,7 @@ void IndexWindow::onNewMessageSignal(QString label_name,QString username,QString
         }
     }else{
         fi->setBackgroundColor(true);
-        ChatWindow *chat_window = new ChatWindow(ui->username_label->text(),label_name,label_name==username);
+        ChatWindow *chat_window = new ChatWindow(ui->username_label->text(),label_name,label_name==username, launcher);
         onChatRecentRecordRequestSignal(label_name);
         connect(chat_window,&ChatWindow::sendMessageRequestSignal,this,&IndexWindow::onSendMessageRequestSignal);
         connect(chat_window,&ChatWindow::transferFileRequestSignal,this,&IndexWindow::onTransferFileRequestSignal);
@@ -524,9 +523,7 @@ void IndexWindow::deleteFriendFromUI(Friend f){
         }
     }
     _friend_list_layout->removeWidget(deleted);
-    if(deleted != nullptr){
-        delete deleted;
-    }
+    delete deleted;
 }
 //以下实现收到 被删除好友时 处理
 void IndexWindow::onBeDeletedFriendSignal(QString username){

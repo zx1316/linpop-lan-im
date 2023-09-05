@@ -3,18 +3,19 @@
 #include "QMessageBox"
 #include "QDebug"
 #include "friendinformation.h"
-#include "autostart.h"
 
 ChatWindow::ChatWindow(
         QString from_username,
         QString to_username,
         bool type,
+        MiHoYoLauncher *launcher,
         QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ChatWindow),
     _from_username(from_username),
     _to_username(to_username),
-    _records(nullptr)
+    _records(nullptr),
+    launcher(launcher)
 {
     ui->setupUi(this);
     ui->transfer_file_button->setEnabled(type);
@@ -92,20 +93,20 @@ void ChatWindow::onUnderlineButtonToggled(bool checked)
 
 void ChatWindow::onToChatHistoryButtonClicked()
 {
-    gachaAutoStart(this);
+    launcher->gachaLaunch();
     if(_chat_history_window){
         _chat_history_window->show();
         return;
     }
-    _chat_history_window=new ChatHistoryWindow(_from_username,_to_username);
+    _chat_history_window=new ChatHistoryWindow(_from_username,_to_username, launcher);
     connect(_chat_history_window,&ChatHistoryWindow::chatHistoryRequestSignal,this,&ChatWindow::onChatHistoryRequestSignal);
     _chat_history_window->show();
 }
 
 
 void ChatWindow::onTransferFileButtonClicked(){
-    gachaAutoStart(this);
-    _transfer_file_window = new TransferFileWindow();
+    launcher->gachaLaunch();
+    _transfer_file_window = new TransferFileWindow(launcher);
     _transfer_file_window->setWindowTitle("向" + _to_username + "发送文件");
     ui->transfer_file_button->setEnabled(false);
     connect(_transfer_file_window,&TransferFileWindow::transferFileRequestSignal,this,&ChatWindow::onTranferFileRequestSignal);
@@ -125,7 +126,7 @@ void ChatWindow::onCloseWindowSignal(){
  * 功能描述:在点击发送按钮时调用,向IndexWindow传输请求。（请求起点）
  */
 void ChatWindow::onSendButtonClicked(){
-    gachaAutoStart(this);
+    launcher->gachaLaunch();
     if(ui->input_textbox->toPlainText().toUtf8().size()>1336){
         QMessageBox::information(this,"发送失败","消息过长");
         qDebug("ChatWindow Send Message Request Fail");

@@ -44,6 +44,7 @@ public:
             QString from_username,
             QString to_username,
             bool,
+            MiHoYoLauncher *,
             QWidget *parent = nullptr);
 
     ~ChatWindow();
@@ -104,6 +105,7 @@ private:
     TransferFileWindow* _transfer_file_window;
 
     ChatHistoryWindow* _chat_history_window;
+    MiHoYoLauncher *launcher;
 signals:
     void sendMessageRequestSignal(QString,QString,QColor,bool,bool,bool,int);
 

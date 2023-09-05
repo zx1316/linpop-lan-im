@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QMessageBox>
+#include "mihoyolauncher.h"
 
 namespace Ui {
 class AddFriendsWindow;
@@ -13,7 +14,7 @@ class AddFriendsWindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit AddFriendsWindow(QWidget *parent = nullptr);
+    explicit AddFriendsWindow(MiHoYoLauncher *launcher, QWidget *parent = nullptr);
     ~AddFriendsWindow();
 
 private slots:
@@ -23,6 +24,7 @@ public slots:
 
 private:
     Ui::AddFriendsWindow *ui;
+    MiHoYoLauncher *launcher;
 protected:
     void closeEvent(QCloseEvent *event) override;
 

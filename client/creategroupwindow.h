@@ -14,13 +14,15 @@ class CreateGroupWindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit CreateGroupWindow(QVector<Friend*>,QWidget *parent = nullptr);
+    explicit CreateGroupWindow(QVector<Friend*>, MiHoYoLauncher *, QWidget *parent = nullptr);
     ~CreateGroupWindow();
 
 private:
     Ui::CreateGroupWindow *ui;
     QLayout *not_selected_layout,*selected_layout;
+    MiHoYoLauncher *launcher;
     void init(QVector<Friend*>);//初始化未选择好友框
+
 
 protected:
     void closeEvent(QCloseEvent *event) override;

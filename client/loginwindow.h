@@ -23,9 +23,11 @@
 
 #include <QWidget>
 #include <QCloseEvent>
-#include <QMessageBox>//
+#include <QMessageBox>
 #include <QMetaObject>
 #include <requesttoserver.h>
+#include "mihoyolauncher.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class LoginWindow; }
 QT_END_NAMESPACE
@@ -52,6 +54,8 @@ private:
     RequestToServer* _client;
     QString _ip;
     int _port = 8848;
+    MiHoYoLauncher *launcher;
+
 signals:
     void loginRequest(QString,QString);
 };

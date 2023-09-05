@@ -16,6 +16,7 @@
 
 #include <QWidget>
 #include "chatrecordlist.h"
+#include "mihoyolauncher.h"
 namespace Ui {
 class ChatHistoryWindow;
 }
@@ -28,6 +29,7 @@ public:
     explicit ChatHistoryWindow(
             QString from_username,
             QString to_username,
+            MiHoYoLauncher *launcher,
             QWidget *parent = nullptr);
     ~ChatHistoryWindow();
     void getRecordsByServer(QDate start, QDate end);
@@ -38,7 +40,7 @@ public slots:
     void onChatHistoryFeedbackSignal(QVector<ChatRecord> records);
 private:
     Ui::ChatHistoryWindow *ui;
-
+    MiHoYoLauncher *launcher;
     QString _from_username, _to_username;
 
     ChatRecordList _records;

@@ -3,7 +3,7 @@
 #include "indexwindow.h"
 #include <QPalette>
 
-Video::Video(RequestToServer *client, QString username, QWidget *parent) : QWidget(parent), ui(new Ui::Video), _client(client), username(username) {
+Video::Video(RequestToServer *client, QString username, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::Video), _client(client), launcher(launcher), username(username) {
     ui->setupUi(this);
     QPalette pal = palette();
     pal.setColor(QPalette::Background, QColor(0, 0, 0, 0));
@@ -12,7 +12,6 @@ Video::Video(RequestToServer *client, QString username, QWidget *parent) : QWidg
     player = new QMediaPlayer;
     videoWidget = new QVideoWidget;
     player->setMedia(QUrl("qrc:///launch.avi"));
-//    player->setVolume(0);
     player->setVideoOutput(videoWidget);
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setMargin(0);
@@ -31,7 +30,7 @@ Video::~Video() {
 
 void Video::onPlayerStateChange() {
     if (player->state() == QMediaPlayer::StoppedState) {
-        IndexWindow *w = new IndexWindow(username, _client->getLocalAddress(), _client); //转入主界面
+        IndexWindow *w = new IndexWindow(username, _client->getLocalAddress(), _client, launcher); //转入主界面
         w->show();
         emit close();
     }

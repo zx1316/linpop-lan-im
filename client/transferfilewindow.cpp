@@ -1,11 +1,10 @@
 #include "transferfilewindow.h"
 #include "ui_transferfilewindow.h"
 #include "QFileDialog"
-#include "autostart.h"
 
-TransferFileWindow::TransferFileWindow(QWidget *parent):
+TransferFileWindow::TransferFileWindow(MiHoYoLauncher *launcher, QWidget *parent):
     QWidget(parent),
-    ui(new Ui::TransferFileWindow)
+    ui(new Ui::TransferFileWindow), launcher(launcher)
 {
     ui->setupUi(this);
     ui->transfer_file_button->setEnabled(false);
@@ -34,7 +33,7 @@ void TransferFileWindow::closeEvent(QCloseEvent *event) {
 }
 
 void TransferFileWindow::onOpenFileButtonClicked() {
-    gachaAutoStart(this);
+    launcher->gachaLaunch();
     this->_url = QFileDialog::getOpenFileName(this, "打开文件", "../");
     if(!_url.isEmpty()){
         QString file_name = _url.right(_url.size()-_url.lastIndexOf('/')-1);
@@ -51,7 +50,7 @@ void TransferFileWindow::onOpenFileButtonClicked() {
  * 功能描述:在点击发送文件时,向ChatWindow发送传输文件请求。（请求起点）
  */
 void TransferFileWindow::onTransferFileButtonClicked() {
-    gachaAutoStart(this);
+    launcher->gachaLaunch();
     QString file_name = _url.right(_url.size()-_url.lastIndexOf('/')-1);
     qDebug("TransferFileWindow Transfer File Request");
     QFile file(_url);

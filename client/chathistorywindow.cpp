@@ -1,14 +1,15 @@
 #include "chathistorywindow.h"
 #include "ui_chathistorywindow.h"
 #include "QDebug"
-#include "autostart.h"
 
 ChatHistoryWindow::ChatHistoryWindow(
         QString from_username,
         QString to_username,
+        MiHoYoLauncher *launcher,
         QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ChatHistoryWindow),
+    launcher(launcher),
     _from_username(from_username),
     _to_username(to_username),
     _records(nullptr)
@@ -31,7 +32,7 @@ ChatHistoryWindow::~ChatHistoryWindow()
  */
 void ChatHistoryWindow::onQueryButtonClicked()
 {
-    gachaAutoStart(this);
+    launcher->gachaLaunch();
     _records._browser->clear();
     qDebug("ChatHistoryWindow Chat History Request");
     QDate start = ui->startDate->date();

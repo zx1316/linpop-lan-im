@@ -4,8 +4,8 @@
 #include "QDebug"
 #include "QMessageBox"
 
-CreateGroupWindow::CreateGroupWindow(QVector<Friend*> friend_list,QWidget *parent) :
-    QWidget(parent),ui(new Ui::CreateGroupWindow)
+CreateGroupWindow::CreateGroupWindow(QVector<Friend*> friend_list, MiHoYoLauncher *launcher, QWidget *parent) :
+    QWidget(parent),ui(new Ui::CreateGroupWindow),launcher(launcher)
 {
     ui->setupUi(this);
     //为显示区域添加布局
@@ -49,6 +49,7 @@ void clearLayout(QWidget* widget){
 
 void CreateGroupWindow::onCreateGroupButtonClicked(){
     qDebug("Click Create Group");
+    launcher->gachaLaunch();
     QVector<QString> friend_usernames;
     for(FriendInformation* fi:ui->selected_widget->findChildren<FriendInformation*>()){
         friend_usernames.append(fi->username());
@@ -79,6 +80,7 @@ void CreateGroupWindow::onCreateGroupFeedbackSignal(int feedback,QString name){
 }
 
 void CreateGroupWindow::change(FriendInformation* uf){
+    launcher->gachaLaunch();
     //判断好友控件在哪一个layout对象中，移至另一layout对象并更改按键名称
     if(this->not_selected_layout->indexOf(uf)!=-1){
         this->not_selected_layout->removeWidget(uf);

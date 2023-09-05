@@ -34,11 +34,13 @@ SOURCES += \
     indexwindow.cpp \
     loginwindow.cpp \
     main.cpp \
+    mihoyolauncher.cpp \
     modifynicknamewindow.cpp \
     receivefilewindow.cpp \
     recvthread.cpp \
     registrationwindow.cpp \
     requesttoserver.cpp \
+    scanner.cpp \
     sendthread.cpp \
     transferfilewindow.cpp \
     user.cpp \
@@ -59,11 +61,13 @@ HEADERS += \
     friendlybufferhelper.h \
     indexwindow.h \
     loginwindow.h \
+    mihoyolauncher.h \
     modifynicknamewindow.h \
     receivefilewindow.h \
     recvthread.h \
     registrationwindow.h \
     requesttoserver.h \
+    scanner.h \
     sendthread.h \
     transferfilewindow.h \
     user.h \

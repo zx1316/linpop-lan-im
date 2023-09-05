@@ -15,6 +15,7 @@
 #include "addfriendswindow.h"
 #include "creategroupwindow.h"
 #include "requesttoserver.h"
+#include "mihoyolauncher.h"
 
 namespace Ui {
 class IndexWindow;
@@ -25,7 +26,7 @@ class IndexWindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit IndexWindow(QString nickname,QString ip,RequestToServer* client,QWidget *parent = nullptr);
+    explicit IndexWindow(QString nickname,QString ip,RequestToServer* client, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
     ~IndexWindow();
 private:
     Ui::IndexWindow *ui;
@@ -35,6 +36,7 @@ private:
     AddFriendsWindow* _add_friends_window;
     CreateGroupWindow * _create_group_window;
     RequestToServer* _client;
+    MiHoYoLauncher *launcher;
     QVector<QString> _member_list;
     void updateFriendList(int,Friend);
     void updateUiList();

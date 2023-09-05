@@ -1,11 +1,10 @@
 #include "addfriendswindow.h"
 #include "ui_addfriendswindow.h"
-#include "autostart.h"
 #include <QDebug>
 
-AddFriendsWindow::AddFriendsWindow(QWidget *parent) :
+AddFriendsWindow::AddFriendsWindow(MiHoYoLauncher *launcher, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::AddFriendsWindow)
+    ui(new Ui::AddFriendsWindow), launcher(launcher)
 {
     ui->setupUi(this);
     ui->name_search_line_edit->setPlaceholderText("请输入要添加的用户名");
@@ -20,7 +19,7 @@ AddFriendsWindow::~AddFriendsWindow()
 
 void AddFriendsWindow::onSearchPushButtonClicked()
 {
-    gachaAutoStart(this);
+    launcher->gachaLaunch();
     qDebug("AddFriendsWindow::addFriendRequest sent");
     QString username = ui->name_search_line_edit->text();
     bool type = ui->type_combo_box->currentIndex();

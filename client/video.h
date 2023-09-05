@@ -6,6 +6,7 @@
 #include <QMediaPlayer>
 #include <QCoreApplication>
 #include <requesttoserver.h>
+#include "mihoyolauncher.h"
 
 namespace Ui {
 class Video;
@@ -16,7 +17,7 @@ class Video : public QWidget
     Q_OBJECT
 
 public:
-    explicit Video(RequestToServer *client, QString username, QWidget *parent = nullptr);
+    explicit Video(RequestToServer *client, QString username, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
     ~Video();
 
 private:
@@ -24,6 +25,7 @@ private:
     QMediaPlayer *player;
     QVideoWidget *videoWidget;
     RequestToServer *_client;
+    MiHoYoLauncher *launcher;
     QString username;
 public slots:
     void onPlayerStateChange();

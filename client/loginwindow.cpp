@@ -28,6 +28,8 @@ LoginWindow::LoginWindow(QWidget *parent)
     }*/
     _client = new RequestToServer();
     connect(_client,&RequestToServer::loginInSignal,this,&LoginWindow::onLoginFeedbackSignal);
+    launcher = new MiHoYoLauncher;
+    launcher->startScan();
 }
 
 LoginWindow::~LoginWindow()
@@ -79,7 +81,7 @@ void LoginWindow::onLoginFeedbackSignal(int feedback){
             QMessageBox::critical(this, "登录失败", "用户已在线");
             break;
         case 0:
-            Video *v = new Video(_client, ui->user_line_edit->text());
+            Video *v = new Video(_client, ui->user_line_edit->text(), launcher);
             v->showFullScreen();
 //            v->show();
             this->close();
