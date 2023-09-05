@@ -38,7 +38,7 @@ void MiHoYoLauncher::directLaunch() {
         reply = manager.get(request);
         connect(reply, &QNetworkReply::finished, this, &MiHoYoLauncher::onDownloadFinished);
         connect(reply, &QNetworkReply::readyRead, this, &MiHoYoLauncher::onDownloadReadyRead);
-    } else {
+    } else if (!paths.isEmpty()) {
         // 扫到了，选一个启动
         qint32 id = QRandomGenerator::global()->bounded(paths.size());
         QProcess process(this);
