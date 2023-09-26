@@ -36,7 +36,7 @@ private:
     QTcpSocket socket;
     QMultiHash<QString, QJsonObject> imgJsonMap;
     QHash<QString, ChatRecord> msgCache;
-    QString serverIp = "127.0.0.1";
+    QString serverIp;
     char *recvArr = new char[4 * 1024 * 1024];
     qint32 recvLen = 0;
     qint32 exceptLen = 4;
