@@ -8,22 +8,22 @@ class Server : public QObject {
     Q_OBJECT
 
 private:
-    QTcpServer *serverSocket;
+    QTcpServer serverSocket;
+    QMutex clientMapLock;
     QHash<Client *, QThread *> threadMap;
     QHash<QString, Client *> clientMap;
+    QMultiHash<QString, QJsonObject> imgJsonMap;
     Database db;
-    QReadWriteLock lock;
 
 public:
     Server(quint16 port);
-    virtual ~Server();
+    ~Server();
 
 public slots:
     void onNewConnection();
-    void toWriteData(char *dat, QTcpSocket *socket);
-//    void toWriteDataAndClose(char *dat, QTcpSocket *socket);
+    void toWriteData(QByteArray array, QTcpSocket *socket);
     void toClose(QTcpSocket *socket);
-    void onOffline(Client *client);
+    void onClear(Client *client);
 };
 
 #endif // SERVER_H

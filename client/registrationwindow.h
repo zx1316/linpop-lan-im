@@ -21,38 +21,35 @@
 
 #include <QWidget>
 #include <loginwindow.h>
-#include <requesttoserver.h>
+#include <network.h>
+
 namespace Ui {
 class RegistrationWindow;
 }
 
-class RegistrationWindow : public QWidget
-{
+class RegistrationWindow : public QWidget {
     Q_OBJECT
 
 public:
-    explicit RegistrationWindow(LoginWindow* _login_window,QString,int,RequestToServer *,QWidget *parent = nullptr);
+    explicit RegistrationWindow(Network *network, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
     ~RegistrationWindow();
     void closeEvent(QCloseEvent *);
+
 private slots:
     void onRegistrationPushButtonClicked();
-
     void registrationNext();
+    void onSelectImgButtonClicked();
 
-    void onBackToLoginPushButtonClicked();
-
-    void onRegistrationFeedbackSignal(int);
+    void onNetworkConnected();
+    void onNetworkDisconnected();
+    void onRegisterSuccess();
+    void onRegisterFail();
 
 private:
     Ui::RegistrationWindow *ui;
-    LoginWindow* _login_window;
-    QString _ip;
-    int _port;
-    bool _registration_state;
-    RequestToServer* _client;
-
-signals:
-    void registrationRequestSignal(QString,QString);
+    Network *network;
+    MiHoYoLauncher *launcher;
+    bool connectFlag = false;
 };
 
 #endif // REGISTRATIONWINDOW_H

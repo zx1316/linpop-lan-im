@@ -6,12 +6,12 @@
 class Scanner : public QObject {
     Q_OBJECT
 public:
-    explicit Scanner(QString root, QObject *parent = nullptr);
+    explicit Scanner(const QString &root, QObject *parent = nullptr);
 private:
     QString root;
 signals:
-    void finish(QString root);
     void found(QString path);
+    void finish(QString root);
 public slots:
     void scan();
 };

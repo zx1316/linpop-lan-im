@@ -15,37 +15,31 @@
 #define CHATHISTORYWINDOW_H
 
 #include <QWidget>
-#include "chatrecordlist.h"
 #include "mihoyolauncher.h"
+
 namespace Ui {
 class ChatHistoryWindow;
 }
 
-class ChatHistoryWindow : public QWidget
-{
+class ChatHistoryWindow : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ChatHistoryWindow(
-            QString from_username,
-            QString to_username,
-            MiHoYoLauncher *launcher,
-            QWidget *parent = nullptr);
+    explicit ChatHistoryWindow(MiHoYoLauncher *launcher, QWidget *parent = nullptr);
     ~ChatHistoryWindow();
-    void getRecordsByServer(QDate start, QDate end);
+    void refreshRecords(const QString &html);
 
 private slots:
     void onQueryButtonClicked();
-public slots:
-    void onChatHistoryFeedbackSignal(QVector<ChatRecord> records);
+    void onAnchorClicked(QUrl url);
+
 private:
     Ui::ChatHistoryWindow *ui;
     MiHoYoLauncher *launcher;
-    QString _from_username, _to_username;
 
-    ChatRecordList _records;
 signals:
-    void chatHistoryRequestSignal(QDate,QDate);
+    void chatHistoryRequestSignal(QDate, QDate);
+    void windowClosed();
 
 };
 

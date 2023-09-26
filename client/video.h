@@ -5,29 +5,26 @@
 #include <QtMultimediaWidgets>
 #include <QMediaPlayer>
 #include <QCoreApplication>
-#include <requesttoserver.h>
-#include "mihoyolauncher.h"
+#include "indexwindow.h"
 
 namespace Ui {
 class Video;
 }
 
-class Video : public QWidget
-{
+class Video : public QWidget {
     Q_OBJECT
 
 public:
-    explicit Video(RequestToServer *client, QString username, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
+    explicit Video(IndexWindow *w, QWidget *parent = nullptr);
     ~Video();
 
 private:
     Ui::Video *ui;
     QMediaPlayer *player;
     QVideoWidget *videoWidget;
-    RequestToServer *_client;
-    MiHoYoLauncher *launcher;
-    QString username;
-public slots:
+    IndexWindow *w;
+
+private slots:
     void onPlayerStateChange();
 };
 

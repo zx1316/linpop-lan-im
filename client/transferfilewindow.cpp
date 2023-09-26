@@ -1,12 +1,11 @@
 #include "transferfilewindow.h"
 #include "ui_transferfilewindow.h"
 #include "QFileDialog"
+#include <QTimer>
 
-TransferFileWindow::TransferFileWindow(MiHoYoLauncher *launcher, QWidget *parent):
-    QWidget(parent),
-    ui(new Ui::TransferFileWindow), launcher(launcher)
-{
+TransferFileWindow::TransferFileWindow(MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::TransferFileWindow), launcher(launcher) {
     ui->setupUi(this);
+    setAttribute(Qt::WA_DeleteOnClose, true);
     ui->transfer_file_button->setEnabled(false);
     ui->state_label->setText("请打开文件");
     ui->progressBar->setValue(0);
@@ -16,28 +15,20 @@ TransferFileWindow::TransferFileWindow(MiHoYoLauncher *launcher, QWidget *parent
     connect(ui->quit_button,SIGNAL(clicked()),this,SLOT(close()));
 }
 
-TransferFileWindow::~TransferFileWindow()
-{
-    delete ui;
-}
-
-void TransferFileWindow::closeEvent(QCloseEvent *event) {
-    emit closeWindowSignal();
+TransferFileWindow::~TransferFileWindow() {
+    // 清理线程
     if (thread != nullptr) {
-        thread->interruptFlag = true;
         thread->quit();
-        thread->wait();
-        disconnect(thread);
-        delete thread;
     }
+    emit windowClosed();
+    delete ui;
 }
 
 void TransferFileWindow::onOpenFileButtonClicked() {
     launcher->gachaLaunch();
-    this->_url = QFileDialog::getOpenFileName(this, "打开文件", "../");
-    if(!_url.isEmpty()){
-        QString file_name = _url.right(_url.size()-_url.lastIndexOf('/')-1);
-        ui->state_label->setText(file_name);
+    path = QFileDialog::getOpenFileName(this, "打开文件", "../");
+    if(!path.isEmpty()) {
+        ui->state_label->setText(QFileInfo(path).fileName());
         ui->transfer_file_button->setEnabled(true);
     } else {
         ui->state_label->setText("请打开文件");
@@ -51,72 +42,49 @@ void TransferFileWindow::onOpenFileButtonClicked() {
  */
 void TransferFileWindow::onTransferFileButtonClicked() {
     launcher->gachaLaunch();
-    QString file_name = _url.right(_url.size()-_url.lastIndexOf('/')-1);
-    qDebug("TransferFileWindow Transfer File Request");
-    QFile file(_url);
-    emit transferFileRequestSignal(file_name, file.size());
+    QFileInfo info(path);
+    emit transferFileRequestSignal(info.fileName(), info.size());
     ui->transfer_file_button->setEnabled(false);
     ui->open_file_button->setEnabled(false);
     ui->progressBar->setValue(0);
 }
-/**
- * 函数名称：transferFile()
- * 描述：新建子线程，在子线程中发送文件
- * 参数：void
- * 返回值:void
- * 做成时间：2023.8.26
- * 作者：刘文景
- */
-void TransferFileWindow::onTransferFileFeedbackSignal(bool feedback,QString ip,int port){
-    qDebug("TransferFileWindow Transfer File Feedback");
-    if(!feedback) {
-        QMessageBox::information(this,"Fail:","对方拒绝了你的传输申请");
-        ui->state_label->setText("请打开文件");
-        ui->open_file_button->setEnabled(true);
-        ui->transfer_file_button->setEnabled(false);
-    } else {
-        ui->state_label->setText("正在传输文件");
-        thread = new SendThread(ip, port, _url);
-        ui->open_file_button->setEnabled(false);
-        connect(thread, &SendThread::progress, this, &TransferFileWindow::sending_slot);
-//        connect(thread, &SendThread::noServer, this, &TransferFileWindow::onNoServer);
-        connect(thread, &SendThread::failed, this, &TransferFileWindow::onFailed);
-        connect(thread, &SendThread::finish, this, &TransferFileWindow::onFinish);
-        thread->start();
-    }
+
+void TransferFileWindow::onAcceptTransferFileSignal(const QString &ip, int port) {
+    ui->state_label->setText("正在传输文件");
+    thread = new ClientSendThread(path, ip, port);
+    auto timer = new QTimer;
+    timer->setInterval(30000);
+    connect(thread, &ClientSendThread::progress, this, [=] (qint8 progress) {
+        ui->progressBar->setValue(progress);
+        timer->start();
+    });
+    connect(thread, &ClientSendThread::success, this, &TransferFileWindow::onFinish);
+    connect(thread, &ClientSendThread::fail, this, &TransferFileWindow::onFail);
+    connect(thread, &ClientSendThread::finished, thread, &ClientSendThread::deleteLater);
+    connect(thread, &ClientSendThread::finished, timer, &QTimer::deleteLater);
+    connect(timer, &QTimer::timeout, this, &TransferFileWindow::onFail);
+    timer->start();
+    thread->start();
 }
 
-void TransferFileWindow::sending_slot(const int current) {
-    ui->progressBar->setValue(current);
+void TransferFileWindow::onRejectTransferFileSignal() {
+    QMessageBox::information(this,"Fail:","对方拒绝了你的传输申请");
+    ui->state_label->setText("请打开文件");
+    ui->open_file_button->setEnabled(true);
+    ui->transfer_file_button->setEnabled(false);
 }
 
 void TransferFileWindow::onFinish() {
     thread->quit();
-    thread->wait();
-    disconnect(thread);
-    delete thread;
     thread = nullptr;
     QMessageBox::information(this,"Success:","发送完毕");
     ui->state_label->setText("请打开文件");
     ui->open_file_button->setEnabled(true);
     ui->transfer_file_button->setEnabled(false);
 }
-/*
-void TransferFileWindow::onNoServer() {
-    thread->quit();
-    thread->wait();
-    thread = nullptr;
-    QMessageBox::information(this,"Failed:","发送端未能连接到接收端");
-    ui->state_label->setText("请打开文件");
-    ui->open_file_button->setEnabled(true);
-    ui->transfer_file_button->setEnabled(false);
-}*/
 
-void TransferFileWindow::onFailed() {
+void TransferFileWindow::onFail() {
     thread->quit();
-    thread->wait();
-    disconnect(thread);
-    delete thread;
     thread = nullptr;
     QMessageBox::information(this,"Fail:","发送失败");
     ui->state_label->setText("请打开文件");

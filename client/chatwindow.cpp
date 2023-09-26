@@ -1,255 +1,317 @@
 #include "chatwindow.h"
 #include "ui_chatwindow.h"
-#include "QMessageBox"
-#include "QDebug"
-#include "friendinformation.h"
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QCryptographicHash>
+#include <QDesktopServices>
+#include <QWindowStateChangeEvent>
 
-ChatWindow::ChatWindow(
-        QString from_username,
-        QString to_username,
-        bool type,
-        MiHoYoLauncher *launcher,
-        QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::ChatWindow),
-    _from_username(from_username),
-    _to_username(to_username),
-    _records(nullptr),
-    launcher(launcher)
-{
+ChatWindow::ChatWindow(const QString &sender, const QString &receiver, const QString &serverIp, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::ChatWindow), selfName(sender), receiver(receiver), serverIp(serverIp), launcher(launcher) {
     ui->setupUi(this);
-    ui->transfer_file_button->setEnabled(type);
-    this->setWindowTitle("与"+to_username+"的聊天窗口");
-    _records=ChatRecordList(ui->chat_record_browser);
-    _chat_history_window = nullptr;
+    setAttribute(Qt::WA_DeleteOnClose, true);
+    if (receiver[0] == '_') {
+        this->setWindowTitle("聊天室：" + receiver.right(receiver.length() - 1));
+    } else {
+        this->setWindowTitle("与" + receiver + "的聊天窗口");
+        ui->memberButton->setHidden(true);
+    }
+    ui->chatBrowser->setOpenLinks(false);
+    inputColor.setRgb(0, 0, 0);
+    ui->inputTextbox->setStyleSheet("color:rgb(0,0,0);");
 
-    connect(ui->to_chat_history_button,SIGNAL(clicked()),this,SLOT(onToChatHistoryButtonClicked()));
-    connect(ui->sendButton,SIGNAL(clicked()),this,SLOT(onSendButtonClicked()));
-    connect(ui->transfer_file_button,SIGNAL(clicked()),this,SLOT(onTransferFileButtonClicked()));
-
-    connect(ui->board_button,&QToolButton::toggled,this,&ChatWindow::onBoardButtonToggled);
-    connect(ui->italics_button,&QToolButton::toggled,this,&ChatWindow::onItalicsButtonToggled);
-    connect(ui->underline_button,&QToolButton::toggled,this,&ChatWindow::onUnderlineButtonToggled);
-
-    connect(ui->font_size_combobox,&QComboBox::currentTextChanged,this,&ChatWindow::onFontSizeComboBoxCurrentTextChanged);
-    connect(ui->color_combobox,SIGNAL(currentIndexChanged(int)),this,SLOT(onColorComboBoxCurrentIndexChanged(int)));
-
+    connect(ui->sendButton, &QPushButton::clicked, this, &ChatWindow::onSendButtonClicked);
+    connect(ui->fileButton, &QPushButton::clicked, this, &ChatWindow::onFileButtonClicked);
+    connect(ui->pictureButton, &QPushButton::clicked,this, &ChatWindow::onPictureButtonClicked);
+    connect(ui->historyButton, &QPushButton::clicked, this, &ChatWindow::onHistoryButtonClicked);
+    connect(ui->fontButton, &QPushButton::clicked, this, &ChatWindow::onFontButtonClicked);
+    connect(ui->memberButton, &QPushButton::clicked, this, &ChatWindow::onMemberButtonClicked);
+    connect(ui->closeButton, &QPushButton::clicked, this, &ChatWindow::close);
+    connect(ui->chatBrowser, &QTextBrowser::anchorClicked, this, &ChatWindow::onAnchorClicked);
 }
-const QColor ChatWindow::_colormap[]={QColor(0,0,0),QColor(255,0,0),QColor(0,255,0),QColor(0,0,255),QColor(255,255,0)};
 
-ChatWindow::~ChatWindow()
-{
-    if(_transfer_file_window!=nullptr){
-        _transfer_file_window->close();
-        delete _transfer_file_window;
+ChatWindow::~ChatWindow() {
+    if (fontWindow != nullptr) {
+        fontWindow->close();
     }
-    if(_chat_history_window!=nullptr){
-        _chat_history_window->close();
-        delete _chat_history_window;
+    if (transferFileWindow != nullptr) {
+        transferFileWindow->close();
     }
+    if (chatHistoryWindow != nullptr) {
+        chatHistoryWindow->close();
+    }
+    if (groupFileWindow != nullptr) {
+        groupFileWindow->close();
+    }
+    if (memberWindow != nullptr) {
+        memberWindow->close();
+    }
+    emit windowClosed(receiver);
     delete ui;
 }
-//QHash<QString,QColor> ChatWindow::_colormap={
-//    {QString("黑色"),QColor(0,0,0)},
-//    {QString("红色"),QColor(255,0,0)},
-//    {QString("绿色"),QColor(0,255,0)},
-//    {QString("蓝色"),QColor(0,0,255)},
-//    {QString("黄色"),QColor(255,255,0)}
-//};
 
-void ChatWindow::onFontSizeComboBoxCurrentTextChanged(const QString &arg1)
-{
-    _fontsize = arg1.toInt();
-    setTextStyle();
-}
-void ChatWindow::onColorComboBoxCurrentIndexChanged(int arg1)
-{
-    switch (arg1) {
-        case 0:_color.setRgb(0,0,0);break;
-        case 1:_color.setRgb(255,0,0);break;
-        case 2:_color.setRgb(0,255,0);break;
-        case 3:_color.setRgb(0,0,255);break;
-        case 4:_color.setRgb(255,255,0);break;
-    }
-    setTextStyle();
-}
-void ChatWindow::onBoardButtonToggled(bool checked)
-{
-    _board=checked;
-    setTextStyle();
-}
-
-void ChatWindow::onItalicsButtonToggled(bool checked)
-{
-    _italics=checked;
-    setTextStyle();
-}
-
-void ChatWindow::onUnderlineButtonToggled(bool checked)
-{
-    _underline=checked;
-    setTextStyle();
-}
-
-void ChatWindow::onToChatHistoryButtonClicked()
-{
+void ChatWindow::onAnchorClicked(QUrl url) {
     launcher->gachaLaunch();
-    if(_chat_history_window){
-        _chat_history_window->show();
-        return;
-    }
-    _chat_history_window=new ChatHistoryWindow(_from_username,_to_username, launcher);
-    connect(_chat_history_window,&ChatHistoryWindow::chatHistoryRequestSignal,this,&ChatWindow::onChatHistoryRequestSignal);
-    _chat_history_window->show();
+    QDesktopServices::openUrl(url);
 }
 
-
-void ChatWindow::onTransferFileButtonClicked(){
+void ChatWindow::onUpdateFont(QFont font, QColor color) {
     launcher->gachaLaunch();
-    _transfer_file_window = new TransferFileWindow(launcher);
-    _transfer_file_window->setWindowTitle("向" + _to_username + "发送文件");
-    ui->transfer_file_button->setEnabled(false);
-    connect(_transfer_file_window,&TransferFileWindow::transferFileRequestSignal,this,&ChatWindow::onTranferFileRequestSignal);
-    connect(_transfer_file_window,&TransferFileWindow::closeWindowSignal,this,&ChatWindow::onCloseWindowSignal);
-    _transfer_file_window->show();
+    inputColor = color;
+    ui->inputTextbox->setFont(font);
+    QString colorStr = "color:rgb(%1,%2,%3);";
+    ui->inputTextbox->setStyleSheet(colorStr.arg(QString::number(color.red()), QString::number(color.green()), QString::number(color.blue())));
 }
 
-void ChatWindow::onCloseWindowSignal(){
-    delete _transfer_file_window;
-    ui->transfer_file_button->setEnabled(true);
+void ChatWindow::onTranferFileRequestSignal(QString fileName, qint64 size) {
+    emit transferFileRequestSignal(receiver, fileName, size);
 }
 
-//反馈和请求响应
+void ChatWindow::onChatHistoryRequestSignal(QDate start, QDate end) {
+    emit chatHistoryRequestSignal(receiver, start, end);
+}
 
-/*
- * 函数名:onSendButtonClicked
- * 功能描述:在点击发送按钮时调用,向IndexWindow传输请求。（请求起点）
- */
-void ChatWindow::onSendButtonClicked(){
+// 群成员窗口请求查询槽函数，即刻转发
+void ChatWindow::onGroupMemberRequestSignal() {
     launcher->gachaLaunch();
-    if(ui->input_textbox->toPlainText().toUtf8().size()>1336){
-        QMessageBox::information(this,"发送失败","消息过长");
-        qDebug("ChatWindow Send Message Request Fail");
-        return;
-    }else if(ui->input_textbox->toPlainText().isEmpty()){
-        QMessageBox::information(this,"发送失败","不能发送空白消息");
-        return;
-    }
-    ui->sendButton->setEnabled(false);
-    qDebug("ChatWindow Send Message Request");
-    emit sendMessageRequestSignal(_to_username,ui->input_textbox->toPlainText(),_color,_board,_italics,_underline,_fontsize);
+    emit groupMemberRequestSignal(receiver);
+}
+// 群文件窗口请求查询槽函数，即刻转发
+void ChatWindow::onGroupFileQuerySignal() {
+    emit groupFileQuerySignal(receiver);
+}
+// 群文件窗口请求删除槽函数，即刻转发
+void ChatWindow::onGroupFileDeleteSignal(QString fileName) {
+    emit groupFileDeleteSignal(receiver, fileName);
+}
+// 群文件窗口请求下载槽函数，即刻转发
+void ChatWindow::onGroupFileDownloadSignal(QString fileName, quint16 port) {
+    emit groupFileDownloadSignal(receiver, fileName, port);
+}
+// 群文件窗口请求上传槽函数，即刻转发
+void ChatWindow::onGroupFileUploadSignal(QString fileName, qint64 size, quint16 port) {
+    emit groupFileUploadSignal(receiver, fileName, size, port);
 }
 
-/*
- * 函数名:onSendMessageFeedbackSignal
- * 功能描述:在收到IndexWindow的发送消息反馈时调用，显示发送记录。该函数由IndexWindow调用。（反馈终点）
- */
-void ChatWindow::onSendMessageFeedbackSignal(bool feedback)
-{
-    ui->sendButton->setEnabled(true);
-    if(feedback){
-        qDebug("ChatWindow Send Message Feedback");
-        ChatRecord record(
-                    _from_username, _to_username, QDateTime::currentDateTime(),
-                    ui->input_textbox->toPlainText(), _fontsize,
-                    _color, _board, _italics, _underline);
-        _records.append(record);
-        ui->input_textbox->clear();
-    }else{
-        QMessageBox::critical(this,"失败","发送失败");
-    }
+void ChatWindow::onFontButtonClicked() {
+    launcher->gachaLaunch();
+    fontWindow = new FontSelectorWindow(ui->inputTextbox->font(), inputColor);
+    connect(fontWindow, &FontSelectorWindow::updateFont, this, &ChatWindow::onUpdateFont);
+    connect(fontWindow, &FontSelectorWindow::windowClosed, this, &ChatWindow::onFontWindowClosed);
+    fontWindow->show();
+    ui->fontButton->setDisabled(true);
 }
 
-/*
- * 函数名:onChatRecentRecordFeedbackSignal
- * 功能描述:在收到IndexWindow发来的最近聊天记录反馈时调用,将聊天记录展示。该函数由IndexWindow调用。（反馈终点）
- */
-void ChatWindow::onChatRecentRecordFeedbackSignal(QVector<ChatRecord> records){
-    qDebug("ChatWindow Chat Recent Records Feedback");
-    if(_chat_history_window!=nullptr){
-        _chat_history_window->onChatHistoryFeedbackSignal(records);
-    }else{
-        for(ChatRecord record:records){
-            _records.append(record);
+void ChatWindow::onPictureButtonClicked() {
+    launcher->gachaLaunch();
+    auto fileName = QFileDialog::getOpenFileName(this, "选择一张图片", "../", "Images (*.png *.jpg *.gif *.bmp)");
+    if (!fileName.isNull()) {
+        QFileInfo info(fileName);
+        QString suffix = info.suffix();
+        if (info.size() > 1048576) {
+            //太大了，返回
+            QMessageBox::information(this, "发送失败", "图片大小超过1MB，请考虑发送文件");
+            return;
         }
+        QFile file(fileName);
+        file.open(QIODevice::ReadOnly);
+        QByteArray array = file.readAll();
+        file.close();
+        QString md5Name = QCryptographicHash::hash(array, QCryptographicHash::Md5).toHex();
+        QFile file1(QCoreApplication::applicationDirPath() + "/images/" + md5Name + "." + suffix);
+        if (!file1.exists()) {
+            file1.open(QIODevice::WriteOnly);
+            file1.write(array);
+            file1.close();
+        }
+        ui->sendButton->setDisabled(true);
+        emit sendMessageRequestSignal(receiver, md5Name + "." + suffix, "img");
     }
 }
 
-/*
- * 函数名:onNewMessageSignal
- * 功能描述:在收到IndexWindow发来的新消息时调用，将收到的消息展示。该函数由IndexWindow调用。(反馈终点)
- */
-void ChatWindow::onNewMessageSignal(QString username,QString msg,QColor color,bool board,bool italics,bool underline,int fontsize){
-    QApplication::beep();
-    qDebug("ChatWindow New Message Signal");
-    ChatRecord record(username,_to_username,QDateTime::currentDateTime(),
-                      msg,fontsize,color,board,italics,underline);
-    _records.append(record);
+void ChatWindow::onFileButtonClicked() {
+    launcher->gachaLaunch();
+    if (receiver[0] == '_') {
+        groupFileWindow = new GroupFileWindow(selfName, serverIp, launcher);
+        groupFileWindow->setWindowTitle(receiver.right(receiver.length() - 1) + "的群文件");
+        connect(groupFileWindow, &GroupFileWindow::groupFileDeleteSignal, this, &ChatWindow::onGroupFileDeleteSignal);
+        connect(groupFileWindow, &GroupFileWindow::groupFileDownloadSignal, this, &ChatWindow::onGroupFileDownloadSignal);
+        connect(groupFileWindow, &GroupFileWindow::groupFileUploadSignal, this, &ChatWindow::onGroupFileUploadSignal);
+        connect(groupFileWindow, &GroupFileWindow::groupFileQuerySignal, this, &ChatWindow::onGroupFileQuerySignal);
+        connect(groupFileWindow, &GroupFileWindow::windowClosed, this, &ChatWindow::onGroupFileWindowClosed);
+        groupFileWindow->show();
+        onGroupFileQuerySignal();
+    } else {
+        transferFileWindow = new TransferFileWindow(launcher);
+        transferFileWindow->setWindowTitle("向" + receiver + "发送文件");
+        connect(transferFileWindow, &TransferFileWindow::transferFileRequestSignal, this, &ChatWindow::onTranferFileRequestSignal);
+        connect(transferFileWindow, &TransferFileWindow::windowClosed, this, &ChatWindow::onTransferFileWindowClosed);
+        transferFileWindow->show();
+    }
+    ui->fileButton->setDisabled(true);
 }
 
-/*
- * 函数名:onTransferFileRequestSignal
- * 功能描述:在收到TransferFileWindow发来的传输文件请求时调用,发出请求信号。该函数由connect信号调用。（请求中转）
- */
-
-void ChatWindow::onTranferFileRequestSignal(QString filename,qint64 filesize){
-    qDebug()<<_to_username;
-    emit transferFileRequestSignal(_to_username,filename,filesize);
+void ChatWindow::onMemberButtonClicked() {
+    launcher->gachaLaunch();
+    memberWindow = new GroupMemberWindow;
+    memberWindow->setWindowTitle(receiver.right(receiver.length() - 1) + "的成员列表");
+    connect(memberWindow, &GroupMemberWindow::GroupMemberRequestSignal, this, &ChatWindow::onGroupMemberRequestSignal);
+    connect(memberWindow, &GroupMemberWindow::windowClosed, this, &ChatWindow::onMemberWindowClosed);
+    memberWindow->show();
+    onGroupMemberRequestSignal();
+    ui->memberButton->setDisabled(true);
 }
 
-/*
- * 函数名:onTransferFileFeedbackSignal
- * 功能描述:在收到IndexWindow发来的传输文件反馈时调用，直接调用TransferFileWindow的相应函数。（反馈中转）
- */
-void ChatWindow::onTransferFileFeedbackSignal(bool feedback,QString ip,int port){
-    qDebug("ChatWindow Transfer File Feedback");
-    _transfer_file_window->onTransferFileFeedbackSignal(feedback,ip,port);
+void ChatWindow::onHistoryButtonClicked() {
+    launcher->gachaLaunch();
+    chatHistoryWindow = new ChatHistoryWindow(launcher);
+    if (receiver[0] == '_') {
+        chatHistoryWindow->setWindowTitle(receiver.right(receiver.length() - 1) + "的消息记录");
+    } else {
+        chatHistoryWindow->setWindowTitle(receiver + "的消息记录");
+    }
+    connect(chatHistoryWindow, &ChatHistoryWindow::chatHistoryRequestSignal, this, &ChatWindow::onChatHistoryRequestSignal);
+    connect(chatHistoryWindow, &ChatHistoryWindow::windowClosed, this, &ChatWindow::onHistoryWindowClosed);
+    chatHistoryWindow->show();
+    ui->historyButton->setDisabled(true);
 }
 
-/*
- * 函数名:onChatHistoryRequestSignal
- * 功能描述:在收到ChatHistoryRequest发来的聊天历史记录请求时调用，发出请求信号。该函数由connect信号调用。（请求中转）
- */
-void ChatWindow::onChatHistoryRequestSignal(QDate start,QDate end){
-    qDebug("ChatWindow Chat History Request");
-    emit chatHistoryRequestSignal(_to_username,start,end);
+void ChatWindow::onSendButtonClicked() {
+    launcher->gachaLaunch();
+    QString content = ui->inputTextbox->toPlainText();
+    if (content.length() == 0) {
+        QMessageBox::critical(this, "无法发送", "发送内容不能为空");
+        return;
+    }
+    if (content.toUtf8().size() > 3072) {
+        QMessageBox::critical(this, "无法发送", "发送内容过长");
+        return;
+    }
+    content.replace('&', "&amp;");
+    content.replace(' ', "&ensp;");
+    content.replace('<', "&lt;");
+    content.replace('>', "&gt;");
+    content.replace('"', "&quot;");
+    content.replace('\n', "<br>");
+    QString span = "<span style=\"font-family:%1;font-size:%2pt;color:rgb(%3,%4,%5);\">%6%7%8%9%10%11%12</span>";
+    QFont font = ui->inputTextbox->font();
+    QString completed = span.arg(font.family(),
+                                 QString::number(font.pointSize()),
+                                 QString::number(inputColor.red()),
+                                 QString::number(inputColor.green()),
+                                 QString::number(inputColor.blue()),
+                                 font.bold() ? "<b>" : "",
+                                 font.italic() ? "<i>" : "",
+                                 font.underline() ? "<u>" : "",
+                                 content,
+                                 font.bold() ? "</b>" : "",
+                                 font.italic() ? "</i>" : "",
+                                 font.underline() ? "</u>" : "");
+    ui->inputTextbox->clear();
+    ui->sendButton->setDisabled(true);
+    emit sendMessageRequestSignal(receiver, completed, "text");
 }
 
-/*
- * 函数名:onChatHistoryFeedbackSignal
- * 功能描述:在收到IndexWindow发来的聊天历史记录反馈时调用，直接调用ChatHistoryWindow的相应函数。（反馈中转）
- */
-//void ChatWindow::onChatHistoryFeedbackSignal(QVector<ChatRecord> records){
-//    qDebug("ChatWindow Chat History Feedback");
-//    _chat_history_window->onChatHistoryFeedbackSignal(records);
-//}
-/**
- * 函数名称：setTextStyle()
- * 描述：设置将要发送都是聊天信息的格式信息
- * 参数：void
- * 返回值: void
- * 做成时间：2023.08.24
- * 作者：刘文景
- */
-void ChatWindow::setTextStyle(){
-    QString style = QString("");
-    style.append("QTextEdit{");
-    style.append("font: ");
-    style.append(QString::number(_fontsize));
-    style.append("pt;");
-    style.append("color: rgb(");
-    style.append(QString::number(_color.red()));
-    style.append(",");
-    style.append(QString::number(_color.green()));
-    style.append(",");
-    style.append(QString::number(_color.blue()));
-    style.append(");");
-    style.append("font-weight: ");
-    style.append(_board?"bold;":"normal;");
-    style.append("font-style: ");
-    style.append(_italics?"italic;":"normal;");
-    style.append("text-decoration: ");
-    style.append(_underline?"underline":"none");
-    style.append(";}");
-    ui->input_textbox->setStyleSheet(style);
+void ChatWindow::onTransferFileWindowClosed() {
+    transferFileWindow = nullptr;
+    ui->fileButton->setDisabled(false);
+}
+
+void ChatWindow::onGroupFileWindowClosed() {
+    groupFileWindow = nullptr;
+    ui->fileButton->setDisabled(false);
+}
+
+void ChatWindow::onMemberWindowClosed() {
+    memberWindow = nullptr;
+    ui->memberButton->setDisabled(false);
+}
+
+void ChatWindow::onFontWindowClosed() {
+    fontWindow = nullptr;
+    ui->fontButton->setDisabled(false);
+}
+
+void ChatWindow::onHistoryWindowClosed() {
+    chatHistoryWindow = nullptr;
+    ui->historyButton->setDisabled(false);
+}
+
+// 主窗口发来的传送文件反馈槽函数
+void ChatWindow::onAcceptTransferFileSignal(const QString &ip, int port) {
+    if (transferFileWindow != nullptr) {
+        transferFileWindow->onAcceptTransferFileSignal(ip, port);
+    }
+}
+
+void ChatWindow::onRejectTransferFileSignal() {
+    if (transferFileWindow != nullptr) {
+        transferFileWindow->onRejectTransferFileSignal();
+    }
+}
+
+// 主窗口发来的收到历史记录槽函数
+void ChatWindow::onReceiveHistorySignal(const QList<ChatRecord> &list) {
+    QString html1;
+    QString head1 = "<span style=\"font-size:9pt;color:#008040\">%1&emsp;%2</span><br>";
+    QString head2 = "<span style=\"font-size:9pt;color:#0000FF\">%1&emsp;%2</span><br>";
+    for (auto item : list) {
+        if (item.sender == selfName) {
+            html1 += head1.arg(item.sender, QDateTime::fromMSecsSinceEpoch(item.timestamp).toString("yyyy/MM/dd hh:mm:ss"));
+        } else {
+            html1 += head2.arg(item.sender, QDateTime::fromMSecsSinceEpoch(item.timestamp).toString("yyyy/MM/dd hh:mm:ss"));
+        }
+        if (item.type == "text") {
+            html1 += item.msg;
+        } else if (item.type == "img") {
+            QString img = "<a href=\"%1\"><img src=\"%1\"></a>";
+            html1 += img.arg("file:///" + QCoreApplication::applicationDirPath() + "/images/" + item.msg);
+        }
+        html1 += "<br>";
+    }
+    if (isRecordOk && chatHistoryWindow != nullptr) {
+        // 导向聊天记录窗口
+        chatHistoryWindow->refreshRecords(html1);
+    } else {
+        // 导向本窗口
+        htmlToShow = html1;
+        ui->chatBrowser->setHtml(htmlToShow);
+        ui->chatBrowser->moveCursor(QTextCursor::End);
+        isRecordOk = true;
+    }
+}
+// 主窗口发来的新消息槽函数
+void ChatWindow::onNewMessageSignal(const QString &sender, const QString &msg, const QString &type) {
+    QString head;
+    if (sender == selfName) {
+        head = "<span style=\"font-size:9;color:#008040\">%1&emsp;%2</span><br>";
+    } else {
+        head = "<span style=\"font-size:9;color:#0000FF\">%1&emsp;%2</span><br>";
+    }
+    htmlToShow += head.arg(sender, QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss"));
+    if (type == "text") {
+        htmlToShow += msg;
+    } else if (type == "img") {
+        QString img = "<a href=\"%1\"><img src=\"%1\"></a>";
+        htmlToShow += img.arg("file:///" + QCoreApplication::applicationDirPath() + "/images/" + msg);
+    }
+    htmlToShow += "<br>";
+    ui->chatBrowser->setHtml(htmlToShow);
+    ui->chatBrowser->moveCursor(QTextCursor::End);
+}
+// 主窗口发来的成员列表槽函数
+void ChatWindow::onGroupMemberSignal(const QList<QString> &list) {
+    if (memberWindow != nullptr) {
+        memberWindow->onGroupMemberSignal(list);
+    }
+}
+// 主窗口发来的群文件列表槽函数
+void ChatWindow::onGroupFileSignal(const QList<GroupFile> &list) {
+    if (groupFileWindow != nullptr) {
+        groupFileWindow->refreshFileList(list);
+    }
+}
+
+void ChatWindow::onSendMessageSuccessSignal(const QString &msg, const QString &type) {
+    onNewMessageSignal(selfName, msg, type);
+    ui->sendButton->setDisabled(false);
 }

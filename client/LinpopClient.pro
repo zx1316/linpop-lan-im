@@ -1,11 +1,8 @@
-QT       += core gui
-QT       += network
-QT += multimedia
-QT += multimediawidgets
+QT += core gui widgets network multimedia multimediawidgets
 RC_FILE += res.rc
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++11
+CONFIG += c++14
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -20,57 +17,51 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     addfriendswindow.cpp \
-    autostart.cpp \
     chathistorywindow.cpp \
-    chatrecord.cpp \
-    chatrecordlist.cpp \
     chatwindow.cpp \
+    clientsendthread.cpp \
     configwindow.cpp \
     creategroupwindow.cpp \
     doubleclickedlabel.cpp \
-    friend.cpp \
+    fontselectorwindow.cpp \
     friendinformation.cpp \
-    friendlybufferhelper.cpp \
+    groupfilewindow.cpp \
+    groupmemberwindow.cpp \
     indexwindow.cpp \
     loginwindow.cpp \
     main.cpp \
     mihoyolauncher.cpp \
-    modifynicknamewindow.cpp \
+    network.cpp \
     receivefilewindow.cpp \
-    recvthread.cpp \
     registrationwindow.cpp \
-    requesttoserver.cpp \
     scanner.cpp \
-    sendthread.cpp \
+    serverrecvthread.cpp \
+    serversendthread.cpp \
     transferfilewindow.cpp \
-    user.cpp \
     video.cpp
 
 HEADERS += \
     addfriendswindow.h \
-    autostart.h \
     chathistorywindow.h \
-    chatrecord.h \
-    chatrecordlist.h \
     chatwindow.h \
+    clientsendthread.h \
     configwindow.h \
     creategroupwindow.h \
     doubleclickedlabel.h \
-    friend.h \
+    fontselectorwindow.h \
     friendinformation.h \
-    friendlybufferhelper.h \
+    groupfilewindow.h \
+    groupmemberwindow.h \
     indexwindow.h \
     loginwindow.h \
     mihoyolauncher.h \
-    modifynicknamewindow.h \
+    network.h \
     receivefilewindow.h \
-    recvthread.h \
     registrationwindow.h \
-    requesttoserver.h \
     scanner.h \
-    sendthread.h \
+    serverrecvthread.h \
+    serversendthread.h \
     transferfilewindow.h \
-    user.h \
     video.h
 
 FORMS += \
@@ -79,10 +70,12 @@ FORMS += \
     chatwindow.ui \
     configwindow.ui \
     creategroupwindow.ui \
+    fontselectorwindow.ui \
     friendinformation.ui \
+    groupfilewindow.ui \
+    groupmemberwindow.ui \
     indexwindow.ui \
     loginwindow.ui \
-    modifynicknamewindow.ui \
     receivefilewindow.ui \
     registrationwindow.ui \
     transferfilewindow.ui \
@@ -98,5 +91,5 @@ DISTFILES += \
     uac.manifest
 
 RESOURCES += \
-    picture.qrc \
+    icon.qrc \
     video.qrc

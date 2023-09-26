@@ -10,109 +10,89 @@
 #define INDEXWINDOW_H
 
 #include <QWidget>
-#include <friend.h>
 #include "friendinformation.h"
 #include "addfriendswindow.h"
 #include "creategroupwindow.h"
-#include "requesttoserver.h"
 #include "mihoyolauncher.h"
+#include "chatwindow.h"
+#include "network.h"
 
 namespace Ui {
 class IndexWindow;
 }
 
-class IndexWindow : public QWidget
-{
+class IndexWindow : public QWidget {
     Q_OBJECT
 
 public:
-    explicit IndexWindow(QString nickname,QString ip,RequestToServer* client, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
+    explicit IndexWindow(const QString &username, const QString &img, const QList<User> &friendList, Network *network, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
     ~IndexWindow();
+    static QString fileSizeFormatter(qint64 size);
+
+protected:
+    void closeEvent(QCloseEvent *) override;
+
 private:
     Ui::IndexWindow *ui;
-    QLayout* _friend_list_layout;//存放好友列表UI界面
-    QVector<Friend*> _friend_list;//存放好友信息
-    QHash<QString,ChatWindow*> _chat_windows;
-    AddFriendsWindow* _add_friends_window;
-    CreateGroupWindow * _create_group_window;
-    RequestToServer* _client;
+    QLayout *_friend_list_layout;//存放好友列表UI界面
+    QHash<QString, ChatWindow *> _chat_windows;
+    AddFriendsWindow *_add_friends_window = nullptr;
+    CreateGroupWindow *_create_group_window = nullptr;
+    Network *network;
     MiHoYoLauncher *launcher;
-    QVector<QString> _member_list;
-    void updateFriendList(int,Friend);
-    void updateUiList();
-    void deleteFriendFromUI(Friend);
+    void deleteFriendFromUI(const QString &name);
+    void insertFriendToUI(const User &user);
+    void putFriendToFront(const QString &name);
 
 public slots:
-    //initSlots
-    void onFriendListFeedbackSignal(QVector<Friend> friends);
-
-    //ButtonSlots
+    // button slots
     void onAddFriendButtonClicked();
     void onCreateGroupButtonClicked();
+    void onChangeImgButtonClicked();
     void onChatWithFriendSignal(FriendInformation* fi);
-
-    //AddFriend
-    void onAddFriendRequestSignal(bool,QString);
-    void onAddFriendFeedbackSignal(int,Friend);
-
-    //CreateGroup
-    void onCreateGroupRequestSignal(QString,QVector<QString>);
-    void onCreateGroupFeedbackSignal(bool,QString);
-
-
-    //ChatWithFriend
-    void onNewMessageSignal(QString,QString,QString,QColor,bool,bool,bool,int);
-    void onSendMessageRequestSignal(QString,QString,QColor,bool,bool,bool,int);
-    void onSendMessageFeedbackSignal(QString,bool);
-
-    //query for chat record
-    void onChatRecentRecordRequestSignal(QString);
-    void onChatRecentRecordFeedbackSignal(QString username,QVector<ChatRecord>);
-    void onChatHistoryRequestSignal(QString,QDate,QDate);;
-//    void onChatHistoryFeedbackSignal(QString,QVector<ChatRecord>);
-
-    //sentFile
-    void onTransferFileRequestSignal(QString,QString,qint64);
-    void onTransferFileFeedbackSignal(bool,QString,int);
-    void onAcceptFileSignal(QString,QString,qint64);
-    void onGetPort(QString, quint16);
-
-    //deleteFriend
     void onDeleteFriendSignal(FriendInformation* fi);
-    void onDeleteFriendFeedbackSignal(bool,QString);
-    void onBeDeletedFriendSignal(QString);
 
-    void onFriendUpSignal(Friend);
-    void onFriendDownSignal(QString);
-    void onBeAddedSignal(Friend f);
+    // network feedback
+    void onGroupMemberListFeedbackSignal(QString groupName, QList<QString> list);
+    void onCreateGroupSuccessFeedbackSignal();
+    void onCreateGroupFailFeedbackSignal();
+    void onAddFriendSuccessFeedbackSignal(QString name, QString ip, QString imgName);
+    void onAddFriendFailFeedbackSignal(QString name);
+    void onBeAddedFeedbackSignal(QString name, QString ip, QString imgName);
+    void onBeDeletedFeedbackSignal(QString name);
+    void onFriendOnlineFeedbackSignal(QString name, QString ip);
+    void onFriendOfflineFeedbackSignal(QString name);
+    void onFriendImageChangedFeedbackSignal(QString name, QString imgName);
+    void onNewMsgFeedbackSignal(QString innerName, QString sender, QString msg, QString type);
+    void onRequestFileFeedbackSignal(QString sender, QString fileName, qint64 size);
+    void onAcceptFileFeedbackSignal(QString receiver, quint16 port);
+    void onRejectFileFeedbackSignal(QString receiver);
+    void onHistoryFeedbackSignal(QString name, QList<ChatRecord> list);
+    void onFileListFeedbackSignal(QString groupName, QList<GroupFile> list);
+    void onSendMsgSuccessSignal(QString name, QString msg, QString type);
+    void onDisconnectedSignal();
 
-    void onTestButtonClicked();
+    // chat window
+    void onAddFriendRequestSignal(QString);
+    void onAddFriendWindowClosed();
 
-    void onCloseWindow(QWidget*);
+    // create group window
+    void onCreateGroupRequestSignal(QString groupName, QString imgName, QList<QString> list);
+    void onCreateGroupWindowClosed();
 
-signals:
-    //AddFriend
-    void addFriendRequestSignal(QString);
-    void addFriendFeedbackSignal(bool);
+    // chat window
+    void onChatWindowClosed(QString name);
+    void onSendMessageRequestSignal(QString name, QString msg, QString type);
+    void onTransferFileRequestSignal(QString receiver, QString fileName, qint64 size);
+    void onChatHistoryRequestSignal(QString name, QDate start, QDate end);
+    void onGroupMemberRequestSignal(QString groupName);
+    void onGroupFileQuerySignal(QString groupName);
+    void onGroupFileDeleteSignal(QString groupName, QString fileName);
+    void onGroupFileDownloadSignal(QString groupName, QString fileName, quint16 port);
+    void onGroupFileUploadSignal(QString groupName, QString fileName, qint64 size, quint16 port);
 
-    //CreateGroup
-    void createGroupRequestSignal(QVector<QString>);
-    void createGroupFeedbackSignal(bool);
-
-    //ChatWithFriend
-    void newMessageSignal(QString,QString);
-    void sendMessageRequestSignal(QString,QString,QColor,bool,bool,bool,int);
-
-    //query for chat record
-    void chatHistoryRequestSignal(QString,QDate,QDate);
-    void chatHistoryFeedbackSignal(QVector<ChatRecord>);
-
-    //sentFile
-    void transferFileRequestSignal(QString,QString);
-
-    //deleteFriend
-    void deleteFriendRequestSignal(QString);
-    void deleteFriendFeedbackSignal(bool);
+    // sendFile
+    void onGetPort(QString, quint16);
 
 };
 

@@ -25,38 +25,43 @@
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <QMetaObject>
-#include <requesttoserver.h>
 #include "mihoyolauncher.h"
+#include "network.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class LoginWindow; }
 QT_END_NAMESPACE
 
-class LoginWindow : public QWidget
-{
+class LoginWindow : public QWidget {
     Q_OBJECT
 
 public:
-    LoginWindow(QWidget *parent = nullptr);
+    LoginWindow(Network *network, MiHoYoLauncher *launcher, const QString &name, QWidget *parent = nullptr);
     ~LoginWindow();
 
 private slots:
     void onLoginPushButtonClicked();
 
-    void onLoginFeedbackSignal(int);
-
     void onSignupPushButtonClicked();
     void onConfigClicked();
 
     void loginNext();
+
+    void onloginAlready();
+    void onloginUnauthorized();
+    void onloginSuccess(QString imgName, QList<User> list);
+
+public slots:
+    void onNetworkConnected();
+    void onNetworkDisconnected();
+
 private:
     Ui::LoginWindow *ui;
-    RequestToServer* _client;
-    QString _ip;
-    int _port = 8848;
+    Network *network;
     MiHoYoLauncher *launcher;
+    bool connectFlag = false;
 
 signals:
-    void loginRequest(QString,QString);
+    void loginRequest(QString, QString);
 };
 #endif // LOGINWINDOW_H

@@ -1,10 +1,10 @@
 #include "video.h"
 #include "ui_video.h"
-#include "indexwindow.h"
 #include <QPalette>
 
-Video::Video(RequestToServer *client, QString username, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::Video), _client(client), launcher(launcher), username(username) {
+Video::Video(IndexWindow *w, QWidget *parent) : QWidget(parent), ui(new Ui::Video), w(w) {
     ui->setupUi(this);
+    setAttribute(Qt::WA_DeleteOnClose, true);
     QPalette pal = palette();
     pal.setColor(QPalette::Background, QColor(0, 0, 0, 0));
     setPalette(pal);
@@ -22,16 +22,14 @@ Video::Video(RequestToServer *client, QString username, MiHoYoLauncher *launcher
 }
 
 Video::~Video() {
-    videoWidget->deleteLater();
-    disconnect(player);
-    player->deleteLater();
+    delete videoWidget;
+    delete player;
     delete ui;
 }
 
 void Video::onPlayerStateChange() {
     if (player->state() == QMediaPlayer::StoppedState) {
-        IndexWindow *w = new IndexWindow(username, _client->getLocalAddress(), _client, launcher); //转入主界面
         w->show();
-        emit close();
+        this->close();
     }
 }

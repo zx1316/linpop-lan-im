@@ -17,45 +17,38 @@
 #include <QPushButton>
 #include <QThread>
 #include <QMessageBox>
-#include "sendthread.h"
 #include "mihoyolauncher.h"
+#include "clientsendthread.h"
 
 namespace Ui {
 class TransferFileWindow;
 }
 
-class TransferFileWindow : public QWidget
-{
+class TransferFileWindow : public QWidget {
     Q_OBJECT
-    QThread _thread;
 
 public:
     explicit TransferFileWindow(MiHoYoLauncher *, QWidget *parent = nullptr);
     ~TransferFileWindow();
-
-protected:
-    void closeEvent(QCloseEvent *event) override;
+    void onAcceptTransferFileSignal(const QString &ip, int port);
+    void onRejectTransferFileSignal();
 
 private:
     Ui::TransferFileWindow *ui;
-    QString _url;
-    SendThread *thread = nullptr;
+    QString path;
+    ClientSendThread *thread = nullptr;
     QString _receiver_ip;
     int _port;
     MiHoYoLauncher *launcher;
 
-public slots:
+private slots:
     void onOpenFileButtonClicked();
     void onTransferFileButtonClicked();
-    void onTransferFileFeedbackSignal(bool, QString,int port);
-    void sending_slot(const int);
-    void onFailed();
-//    void onNoServer();
+    void onFail();
     void onFinish();
 
 signals:
-    void closeWindowSignal();
-    void operate();
+    void windowClosed();
     void transferFileRequestSignal(QString, qint64);
 };
 

@@ -2,23 +2,22 @@
 #define CONFIGWINDOW_H
 
 #include <QWidget>
+#include "network.h"
 
 namespace Ui {
 class ConfigWindow;
 }
 
-class ConfigWindow : public QWidget
-{
+class ConfigWindow : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ConfigWindow(QWidget *parent, QString &ip, int *port);
+    explicit ConfigWindow(Network *network, QWidget *parent = nullptr);
     ~ConfigWindow();
 
 private:
     Ui::ConfigWindow *ui;
-    QString &ip;
-    int *port;
+    Network *network;
 
 public slots:
     void onConfirmClicked();

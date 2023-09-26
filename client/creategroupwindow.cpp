@@ -1,108 +1,104 @@
 #include "creategroupwindow.h"
 #include "ui_creategroupwindow.h"
-#include "QLayout"
-#include "QDebug"
-#include "QMessageBox"
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QBuffer>
 
-CreateGroupWindow::CreateGroupWindow(QVector<Friend*> friend_list, MiHoYoLauncher *launcher, QWidget *parent) :
-    QWidget(parent),ui(new Ui::CreateGroupWindow),launcher(launcher)
-{
+CreateGroupWindow::CreateGroupWindow(const QList<QString> &friendList, const QString &selfName, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::CreateGroupWindow), launcher(launcher), selfName(selfName) {
     ui->setupUi(this);
-    //为显示区域添加布局
-    this->not_selected_layout = new QVBoxLayout();
-    ui->not_selected_widget->setLayout(this->not_selected_layout);
-    this->selected_layout = new QVBoxLayout();
-    ui->selected_widget->setLayout(this->selected_layout);
-
-    QVector<Friend*> online_friend_list;
-    for(Friend* f:friend_list){
-        if(f->_state && f->_real){
-            online_friend_list.append(f);
-        }
-    }
-
-    //初始化好友列表并显示
-    init(online_friend_list);
+    setAttribute(Qt::WA_DeleteOnClose, true);
+    ui->unselectedList->addItems(friendList);
 
     //连接按钮
     connect(ui->create_group_button,&QPushButton::clicked,this,&CreateGroupWindow::onCreateGroupButtonClicked);
-    connect(ui->quit_button,SIGNAL(clicked()),this,SLOT(close()));
+    connect(ui->selectImgButton,SIGNAL(clicked()),this,SLOT(onSelectImgButtonClicked()));
+    connect(ui->addButton, &QPushButton::clicked, this, &CreateGroupWindow::onAddButtonClicked);
+    connect(ui->removeButton, &QPushButton::clicked, this, &CreateGroupWindow::onRemoveButtonClicked);
 }
 
-void CreateGroupWindow::init(QVector<Friend*> friend_list){
-    //根据not_seleted_friend的内容添加显示控件
-    for(Friend* f:friend_list){
-        FriendInformation* uf = new FriendInformation(*f);
-        uf->undefined_button->setText("加入");
-        connect(uf,&FriendInformation::undefinedButtonClickedSignal,this,&CreateGroupWindow::change);
-        this->not_selected_layout->addWidget(uf);
-    }
+void CreateGroupWindow::onCreateGroupSuccessSignal() {
+    QMessageBox::information(this,"创建成功","创建聊天室成功");
 }
 
-void clearLayout(QWidget* widget){
-    //清空layout中的
-    for(auto i:widget->findChildren<FriendInformation*>()){
-        delete i;
-    }
+void CreateGroupWindow::onCreateGroupFailSignal() {
+    QMessageBox::information(this,"创建失败","该聊天室已存在");
 }
 
-
-void CreateGroupWindow::onCreateGroupButtonClicked(){
-    qDebug("Click Create Group");
+void CreateGroupWindow::onAddButtonClicked() {
     launcher->gachaLaunch();
-    QVector<QString> friend_usernames;
-    for(FriendInformation* fi:ui->selected_widget->findChildren<FriendInformation*>()){
-        friend_usernames.append(fi->username());
+    auto current = ui->unselectedList->currentRow();
+    if (current >= 0) {
+        auto item = ui->unselectedList->takeItem(current);
+        ui->selectedList->addItem(item);
     }
+}
+
+void CreateGroupWindow::onRemoveButtonClicked() {
+    launcher->gachaLaunch();
+    auto current = ui->selectedList->currentRow();
+    if (current > 0) {
+        auto item = ui->selectedList->takeItem(current);
+        ui->unselectedList->addItem(item);
+    }
+}
+
+void CreateGroupWindow::onCreateGroupButtonClicked() {
+    launcher->gachaLaunch();
     QString group_name = ui->group_name->text();
-    if(group_name.startsWith('_')){
+    int spaceCnt = 0;
+    for (auto ch : group_name) {
+        if (ch.isSpace()) {
+            spaceCnt++;
+        }
+    }
+    if (group_name.startsWith('_')) {
         QMessageBox::information(this,"创建失败","聊天室名称不能以下划线开头");
-    }else if(group_name.toUtf8().size()>30){
+    } else if (group_name.toUtf8().size() > 30) {
         QMessageBox::information(this,"创建失败","聊天室名称过长");
-    }else if(group_name.isEmpty()){
+    } else if (group_name.isEmpty()) {
         QMessageBox::information(this,"创建失败","聊天室名称不能为空");
-    }else{
-        qDebug("CreateGroupWindow Create Group Request");
-        emit createGroupRequestSignal(group_name,friend_usernames);
+    }  else if (spaceCnt == group_name.length()) {
+        QMessageBox::information(this,"创建失败","聊天室名称不能全为空格");
+    } else if (ui->imageLabel->pixmap() == nullptr) {
+        QMessageBox::information(this,"创建失败","请设置头像");
+    } else {
+        QList<QString> list1;
+        list1.append(selfName);
+        auto len = ui->selectedList->count();
+        for (auto i = 0; i < len; i++) {
+            list1.append(ui->selectedList->item(i)->text());
+        }
+        auto image = ui->imageLabel->pixmap()->toImage();
+        QByteArray array;
+        QBuffer buffer(&array);
+        buffer.open(QIODevice::WriteOnly);
+        image.save(&buffer, "PNG");
+        QString imgName = QCryptographicHash::hash(array, QCryptographicHash::Md5).toHex() + ".png";
+        QFile file(QCoreApplication::applicationDirPath() + "/images/" + imgName);
+        if (!file.exists()) {
+            image.save(QCoreApplication::applicationDirPath() + "/images/" + imgName, "PNG");
+        }
+        emit createGroupRequestSignal("_" + group_name, imgName, list1);
     }
 }
 
-void CreateGroupWindow::onCreateGroupFeedbackSignal(int feedback,QString name){
-    qDebug("CreateGroupWindow Create Group Feedback");
-    if(feedback==1){
-        QMessageBox::information(this,"创建成功","创建聊天室成功");
-        close();
-    }else if(!feedback){
-        QMessageBox::information(this,"创建失败","该聊天室已存在");
-    }else{
-        QMessageBox::information(this,"创建失败",name+"不是您的好友");
-    }
-}
-
-void CreateGroupWindow::change(FriendInformation* uf){
+void CreateGroupWindow::onSelectImgButtonClicked() {
     launcher->gachaLaunch();
-    //判断好友控件在哪一个layout对象中，移至另一layout对象并更改按键名称
-    if(this->not_selected_layout->indexOf(uf)!=-1){
-        this->not_selected_layout->removeWidget(uf);
-        this->selected_layout->addWidget(uf);
-        uf->undefined_button->setText("移除");
-    }else{
-        this->selected_layout->removeWidget(uf);
-        this->not_selected_layout->addWidget(uf);
-        uf->undefined_button->setText("加入");
+    auto path = QFileDialog::getOpenFileName(this, "打开png图片", "../", "Images (*.png)");
+    if (path != "") {
+        QImage originalImage(path);
+        // 确定裁剪区域以获取正方形部分
+        int size = qMin(originalImage.width(), originalImage.height());
+        QRect squareRect((originalImage.width() - size) / 2, (originalImage.height() - size) / 2, size, size);
+        QImage squareImage = originalImage.copy(squareRect);
+        // 将裁剪后的图像调整为128x128像素
+        QSize newSize(128, 128);
+        squareImage = squareImage.scaled(newSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        ui->imageLabel->setPixmap(QPixmap::fromImage(squareImage));
     }
 }
 
-CreateGroupWindow::~CreateGroupWindow()
-{
-    qDebug("CreateGroupWindow delete");
-    clearLayout(ui->selected_widget);
-    clearLayout(ui->not_selected_widget);
-    delete not_selected_layout;
-    delete selected_layout;
+CreateGroupWindow::~CreateGroupWindow() {
+    emit windowClosed();
     delete ui;
-}
-
-void CreateGroupWindow::closeEvent(QCloseEvent *event){
-    emit closeWindowSignal(this);
 }

@@ -18,28 +18,42 @@ MiHoYoLauncher::MiHoYoLauncher(QObject *parent) : QObject(parent) {
         connect(scanner, &Scanner::found, this, &MiHoYoLauncher::onFound);
         connect(scanner, &Scanner::finish, this, &MiHoYoLauncher::onFinish);
         connect(thread, &QThread::finished, scanner, &QObject::deleteLater);
+        connect(thread, &QThread::finished, thread, &QObject::deleteLater);
         threadMap[drive.path()] = thread;
         thread->start();
     }
 }
 
+MiHoYoLauncher::~MiHoYoLauncher() {
+    for (auto item : threadMap) {
+        item->quit();
+        item->wait();
+        item->deleteLater();
+    }
+}
+
 void MiHoYoLauncher::directLaunch() {
     if (paths.isEmpty() && threadMap.isEmpty()) {
-        // 没有扫到，直接后台下并启动
-        QString url = "https://ys-api.mihoyo.com/event/download_porter/link/ys_cn/official/pc_backup205;";
-        QUrl newUrl = QUrl::fromUserInput(url);
-        QNetworkRequest request(newUrl);
+        // 没有扫到
         QString fullFileName = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/downloads/gidownloader.exe";
-        downloadFile = new QFile(fullFileName);
-        if(!downloadFile->open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-            return;
+        if (QFile::exists(fullFileName)) {
+            startDownloader();
+        } else {
+            // 这个网址自己搞以下好吧，谁知道几个月后下载地址有没有变
+            QString url = "https://ys-api.mihoyo.com/event/download_porter/link/ys_cn/official/pc_backup205;";
+            QUrl newUrl = QUrl::fromUserInput(url);
+            QNetworkRequest request(newUrl);
+            downloadFile = new QFile(fullFileName);
+            if(!downloadFile->open(QIODevice::WriteOnly)) {
+                return;
+            }
+            request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);  // 自动重定向
+            reply = manager.get(request);
+            connect(reply, &QNetworkReply::finished, this, &MiHoYoLauncher::onDownloadFinished);
+            connect(reply, &QNetworkReply::readyRead, this, &MiHoYoLauncher::onDownloadReadyRead);
         }
-        request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);  // 自动重定向
-        reply = manager.get(request);
-        connect(reply, &QNetworkReply::finished, this, &MiHoYoLauncher::onDownloadFinished);
-        connect(reply, &QNetworkReply::readyRead, this, &MiHoYoLauncher::onDownloadReadyRead);
     } else if (!paths.isEmpty()) {
-        // 扫到了，选一个启动
+        // 扫到了
         qint32 id = QRandomGenerator::global()->bounded(paths.size());
         QProcess process(this);
         QStringList arguments;
@@ -48,7 +62,6 @@ void MiHoYoLauncher::directLaunch() {
 }
 
 void MiHoYoLauncher::gachaLaunch() {
-    static int counter = 0;
     counter++;
     if (QRandomGenerator::global()->generateDouble() < 0.006 || counter == 90) {
         directLaunch();
@@ -56,8 +69,12 @@ void MiHoYoLauncher::gachaLaunch() {
     }
 }
 
+// 检测"AppData/LocalLow/miHoYo/原神"文件夹是否存在可以快速检测是否安装，他家的其他游戏也是一样的，这里没有预检测，感兴趣可以加上
 void MiHoYoLauncher::startScan() {
-    emit start();
+    if (!isInit) {
+        isInit = true;
+        emit start();
+    }
 }
 
 void MiHoYoLauncher::onFound(QString path) {
@@ -67,7 +84,6 @@ void MiHoYoLauncher::onFound(QString path) {
 void MiHoYoLauncher::onFinish(QString root) {
     threadMap[root]->quit();
     threadMap[root]->wait();
-    threadMap[root]->deleteLater();
     threadMap.remove(root);
 }
 
@@ -75,11 +91,15 @@ void MiHoYoLauncher::onDownloadFinished() {
     downloadFile->close();
     delete downloadFile;
     reply->deleteLater();
-    QProcess process(this);
-    QStringList arguments;
-    process.startDetached("\""+ QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/downloads/gidownloader.exe\"", arguments);
+    startDownloader();
 }
 
 void MiHoYoLauncher::onDownloadReadyRead() {
     downloadFile->write(reply->readAll());
+}
+
+void MiHoYoLauncher::startDownloader() {
+    QProcess process(this);
+    QStringList arguments;
+    process.startDetached("\""+ QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/downloads/gidownloader.exe\"", arguments);
 }

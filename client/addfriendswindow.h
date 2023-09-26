@@ -14,23 +14,23 @@ class AddFriendsWindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit AddFriendsWindow(MiHoYoLauncher *launcher, QWidget *parent = nullptr);
+    explicit AddFriendsWindow(const QString &selfName, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
     ~AddFriendsWindow();
+    void onAddFriendSuccess();
+    void onAddFriendFail();
+    void onAddFriendAlready();
 
 private slots:
     void onSearchPushButtonClicked();
-public slots:
-    void onAddFriendFeedback(int);
 
 private:
     Ui::AddFriendsWindow *ui;
     MiHoYoLauncher *launcher;
-protected:
-    void closeEvent(QCloseEvent *event) override;
+    QString selfName;
 
 signals:
-    void addFriendRequestSignal(bool,QString);
-    void closeWindowSignal(QWidget* w);
+    void addFriendRequestSignal(QString);
+    void windowClosed();
 };
 
 #endif // ADDFRIENDS_H

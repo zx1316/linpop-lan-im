@@ -1,39 +1,36 @@
 #ifndef CREATEGROUPWINDOW_H
 #define CREATEGROUPWINDOW_H
 
-#include <QMainWindow>
-#include <QLayout>
-#include <friendinformation.h>
+#include <QWidget>
+#include "mihoyolauncher.h"
 
 namespace Ui {
 class CreateGroupWindow;
 }
 
-class CreateGroupWindow : public QWidget
-{
+class CreateGroupWindow : public QWidget {
     Q_OBJECT
 
 public:
-    explicit CreateGroupWindow(QVector<Friend*>, MiHoYoLauncher *, QWidget *parent = nullptr);
+    explicit CreateGroupWindow(const QList<QString> &friendList, const QString &selfName, MiHoYoLauncher *, QWidget *parent = nullptr);
     ~CreateGroupWindow();
+    void onCreateGroupSuccessSignal();
+    void onCreateGroupFailSignal();
 
 private:
     Ui::CreateGroupWindow *ui;
-    QLayout *not_selected_layout,*selected_layout;
     MiHoYoLauncher *launcher;
-    void init(QVector<Friend*>);//初始化未选择好友框
+    QString selfName;
 
-
-protected:
-    void closeEvent(QCloseEvent *event) override;
-public slots:
+private slots:
     void onCreateGroupButtonClicked();
-    void onCreateGroupFeedbackSignal(int,QString);
-    void change(FriendInformation* uf);
+    void onAddButtonClicked();
+    void onRemoveButtonClicked();
+    void onSelectImgButtonClicked();
 
 signals:
-    void createGroupRequestSignal(QString,QVector<QString>);
-    void closeWindowSignal(QWidget*);
+    void createGroupRequestSignal(QString groupName, QString imgName, QList<QString>);
+    void windowClosed();
 };
 
 #endif // CREATEGROUPWINDOW_H

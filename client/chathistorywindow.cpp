@@ -1,28 +1,19 @@
 #include "chathistorywindow.h"
 #include "ui_chathistorywindow.h"
-#include "QDebug"
+#include <QDesktopServices>
 
-ChatHistoryWindow::ChatHistoryWindow(
-        QString from_username,
-        QString to_username,
-        MiHoYoLauncher *launcher,
-        QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::ChatHistoryWindow),
-    launcher(launcher),
-    _from_username(from_username),
-    _to_username(to_username),
-    _records(nullptr)
-{
+ChatHistoryWindow::ChatHistoryWindow(MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::ChatHistoryWindow), launcher(launcher) {
     ui->setupUi(this);
-    _records = ChatRecordList(ui->chatHistoryBrowser);
+    setAttribute(Qt::WA_DeleteOnClose, true);
     ui->endDate->setDate(QDate::currentDate());
     ui->startDate->setDate(QDate::currentDate().addMonths(-1));
+    ui->chatHistoryBrowser->setOpenLinks(false);
+    connect(ui->chatHistoryBrowser, &QTextBrowser::anchorClicked, this, &ChatHistoryWindow::onAnchorClicked);
     connect(ui->queryButton,SIGNAL(clicked()),this,SLOT(onQueryButtonClicked()));
 }
 
-ChatHistoryWindow::~ChatHistoryWindow()
-{
+ChatHistoryWindow::~ChatHistoryWindow() {
+    emit windowClosed();
     delete ui;
 }
 
@@ -30,24 +21,21 @@ ChatHistoryWindow::~ChatHistoryWindow()
  * 函数名:onQueryButtonClicked
  * 功能描述:在点击查询按钮时向ChatWindow发出聊天历史记录请求。（请求起点）
  */
-void ChatHistoryWindow::onQueryButtonClicked()
-{
+void ChatHistoryWindow::onQueryButtonClicked() {
     launcher->gachaLaunch();
-    _records._browser->clear();
-    qDebug("ChatHistoryWindow Chat History Request");
     QDate start = ui->startDate->date();
     QDate end = ui->endDate->date();
-    emit chatHistoryRequestSignal(start,end);
-
+    ui->queryButton->setDisabled(true);
+    emit chatHistoryRequestSignal(start, end);
 }
 
-/*
- * 函数名:onChatHistoryFeedbackSignal
- * 功能描述:在收到来自ChatWindow的聊天历史记录反馈时，显示聊天历史记录。（反馈终点）
- */
-void ChatHistoryWindow::onChatHistoryFeedbackSignal(QVector<ChatRecord> records){
-    qDebug("ChatHistoryWindow Chat History Feedback");
-    for(auto r:records){
-        _records.append(r);
-    }
+void ChatHistoryWindow::refreshRecords(const QString &html) {
+    ui->chatHistoryBrowser->setHtml(html);
+    ui->chatHistoryBrowser->moveCursor(QTextCursor::End);
+    ui->queryButton->setDisabled(false);
 }
+
+void ChatHistoryWindow::onAnchorClicked(QUrl url) {
+    QDesktopServices::openUrl(url);
+}
+

@@ -76,7 +76,19 @@
      </widget>
     </item>
     <item>
-     <widget class="QLineEdit" name="ipEdit"/>
+     <widget class="QLineEdit" name="ipEdit">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>10</pointsize>
+       </font>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -110,7 +122,19 @@
      </widget>
     </item>
     <item>
-     <widget class="QLineEdit" name="portEdit"/>
+     <widget class="QLineEdit" name="portEdit">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>10</pointsize>
+       </font>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>

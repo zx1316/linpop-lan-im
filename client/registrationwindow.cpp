@@ -1,27 +1,28 @@
 #include "registrationwindow.h"
 #include "ui_registrationwindow.h"
 #include "loginwindow.h"
-RegistrationWindow::RegistrationWindow(LoginWindow* login_window,QString ip,int port, RequestToServer *client, QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::RegistrationWindow),
-    _login_window(login_window),_ip(ip),_port(port),_client(client)
-{
+#include <QFileDialog>
+#include <QCryptographicHash>
+#include <QBuffer>
+
+RegistrationWindow::RegistrationWindow(Network *network, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::RegistrationWindow), network(network), launcher(launcher) {
     ui->setupUi(this);
-    this->setAttribute(Qt::WA_DeleteOnClose);
-    _registration_state=true;
+    this->setAttribute(Qt::WA_DeleteOnClose, true);
     //绑定回车键触发跳转槽函数
     connect(ui->re_username_line_edit,SIGNAL(returnPressed()),this,SLOT(registrationNext()));
     connect(ui->re_password_line_edit,SIGNAL(returnPressed()),this,SLOT(registrationNext()));
     connect(ui->re_password_confirm_line_edit,SIGNAL(returnPressed()),this,SLOT(onRegistrationPushButtonClicked()));
 
     connect(ui->registration_pushbutton,SIGNAL(clicked()),this,SLOT(onRegistrationPushButtonClicked()));
-    connect(ui->back_to_login_pushbutton,SIGNAL(clicked()),this,SLOT(onBackToLoginPushButtonClicked()));
-    connect(_client,&RequestToServer::registrationSignal,this,&RegistrationWindow::onRegistrationFeedbackSignal);
-
+    connect(ui->back_to_login_pushbutton, &QPushButton::clicked, this, &RegistrationWindow::close);
+    connect(ui->selectImageButton, &QPushButton::clicked, this, &RegistrationWindow::onSelectImgButtonClicked);
+    connect(network, &Network::connectedSignal, this, &RegistrationWindow::onNetworkConnected);
+    connect(network, &Network::disconnectedSignal, this, &RegistrationWindow::onNetworkDisconnected);
+    connect(network, &Network::registerSuccessSignal, this, &RegistrationWindow::onRegisterSuccess);
+    connect(network, &Network::registerFailSignal, this, &RegistrationWindow::onRegisterFail);
 }
 
-RegistrationWindow::~RegistrationWindow()
-{
+RegistrationWindow::~RegistrationWindow() {
     delete ui;
 }
 
@@ -51,76 +52,94 @@ void RegistrationWindow::onRegistrationPushButtonClicked()
     QString username = ui->re_username_line_edit->text();
     QString password = ui->re_password_line_edit->text();
     QString password_confirmed = ui->re_password_confirm_line_edit->text();
-    if(username.isEmpty()||password.isEmpty()||password_confirmed.isEmpty())//为空报错
-    {
-        QMessageBox::information(this,"注册失败","输入框不能为空");
+    if(username.isEmpty()||password.isEmpty()||password_confirmed.isEmpty()) { //为空报错
+        QMessageBox::critical(this,"注册失败","输入框不能为空");
         return;
     }
     if(username.startsWith('_')){
-        QMessageBox::information(this,"注册失败","用户名不能以下划线开头");
+        QMessageBox::critical(this,"注册失败","用户名不能以下划线开头");
         return;
     }
-    if(username.toUtf8().size()>30){
-        QMessageBox::information(this,"注册失败","用户名过长");
+    int spaceCnt = 0;
+    for (auto ch : username) {
+        if (ch.isSpace()) {
+            spaceCnt++;
+        }
+    }
+    if (spaceCnt == username.length()) {
+        QMessageBox::critical(this,"注册失败","用户名不能全为空格");
+        return;
+    }
+    if(username.toUtf8().size() > 30){
+        QMessageBox::critical(this,"注册失败","用户名过长");
         return;   // 谁他妈忘了return？
     }
     if(password.compare(password_confirmed)){//密码不一致报错
-        QMessageBox::information(this,"注册失败","两次密码输入不一致");
+        QMessageBox::critical(this,"注册失败","两次密码输入不一致");
         return;
     }
-    qDebug("RegistrationWindow sent registration request");
-//    _client->socketConnect(_ip, _port);
-    _client->requestRegister(username,password, _ip, _port);
-}
-
-void RegistrationWindow::onRegistrationFeedbackSignal(int feedback){
-    if(feedback == 0)//用户已存在报错
-    {
-        qDebug("Registration Error_1");
-        QMessageBox::critical(this,"注册失败","用户已存在");
-    }else if (feedback == 1)//注册成功
-    {
-        qDebug("Registartion Success");//写入登录成功
-        QMessageBox::information(this,"注册成功","转到登陆页面");
-        _registration_state=false;
-        _login_window->show();
-        this->close();
-    } else if (feedback == -1) {
-        qDebug("Registration Error_2");
-        QMessageBox::critical(this,"网络错误","无法连接至服务器，请检查服务器设置或网络连接");
+    if (ui->imageLabel->pixmap() == nullptr) {
+        QMessageBox::critical(this,"注册失败","请设置头像");
+        return;
     }
+    network->connectToServer();
 }
 
 /*名称：closeEvent
  * 作用：关闭后确认是否回到登陆界面
  */
-void RegistrationWindow::closeEvent(QCloseEvent *event)
-{
-    if(!_registration_state){
-        this->close();
-        return;
-    }
-    if(QMessageBox::question(this,
-                             tr("退出"),
-                             tr("回到登陆界面？"),
-                             QMessageBox::Yes, QMessageBox::No )
-                   == QMessageBox::Yes)
-    {
-        _login_window->show();
-        this->close();
-    }
-    else
-    {
-        event->ignore();
-    }
-
+void RegistrationWindow::closeEvent(QCloseEvent *event) {
+    auto lw = new LoginWindow(network, launcher, "");
+    lw->show();
 }
 
-/*
- * 名称：onBackToLoginClicked()
- * 作用：点击回到登录界面后，关闭注册界面并回到登陆界面
- */
-void RegistrationWindow::onBackToLoginPushButtonClicked()
-{
+void RegistrationWindow::onNetworkConnected() {
+    connectFlag = true;
+    QString name = ui->re_username_line_edit->text();
+    QString pwd = ui->re_password_line_edit->text();
+    auto image = ui->imageLabel->pixmap()->toImage();
+    QByteArray array;
+    QBuffer buffer(&array);
+    buffer.open(QIODevice::WriteOnly);
+    image.save(&buffer, "PNG");
+    QString imgName = QCryptographicHash::hash(array, QCryptographicHash::Md5).toHex() + ".png";
+    QFile file(QCoreApplication::applicationDirPath() + "/images/" + imgName);
+    if (!file.exists()) {
+        image.save(QCoreApplication::applicationDirPath() + "/images/" + imgName, "PNG");
+    }
+    network->requestRegister(name, QCryptographicHash::hash((pwd + name).toUtf8(), QCryptographicHash::Md5).toHex(), imgName);
+    ui->registration_pushbutton->setEnabled(false);
+}
+
+void RegistrationWindow::onNetworkDisconnected() {
+    if (connectFlag == false) {
+        QMessageBox::critical(this, "网络错误", "无法连接到服务器，请检查服务器设置或网络连接");
+    }
+    connectFlag = false;
+    ui->registration_pushbutton->setEnabled(true);
+}
+
+void RegistrationWindow::onRegisterSuccess() {
+    QMessageBox::information(this,"注册成功","转到登录窗口");
     this->close();
+}
+
+void RegistrationWindow::onRegisterFail() {
+    QMessageBox::critical(this,"注册失败","用户名已被注册");
+    ui->registration_pushbutton->setEnabled(true);
+}
+
+void RegistrationWindow::onSelectImgButtonClicked() {
+    auto path = QFileDialog::getOpenFileName(this, "打开png图片", "../", "Images (*.png)");
+    if (path != "") {
+        QImage originalImage(path);
+        // 确定裁剪区域以获取正方形部分
+        int size = qMin(originalImage.width(), originalImage.height());
+        QRect squareRect((originalImage.width() - size) / 2, (originalImage.height() - size) / 2, size, size);
+        QImage squareImage = originalImage.copy(squareRect);
+        // 将裁剪后的图像调整为128x128像素
+        QSize newSize(128, 128);
+        squareImage = squareImage.scaled(newSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        ui->imageLabel->setPixmap(QPixmap::fromImage(squareImage));
+    }
 }

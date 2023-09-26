@@ -1,8 +1,7 @@
 QT -= gui
-QT += network
-QT += sql
+QT += network sql
 
-CONFIG += c++11 console
+CONFIG += c++17 console
 CONFIG -= app_bundle
 
 # The following define makes your compiler emit warnings if you use
@@ -17,9 +16,10 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-        friendlybufferhelper.cpp \
-        main.cpp \
         client.cpp \
+        clientrecvthread.cpp \
+        clientsendthread.cpp \
+        main.cpp \
         server.cpp \
         database.cpp
 
@@ -30,7 +30,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    friendlybufferhelper.h\
     client.h \
+    clientrecvthread.h \
+    clientsendthread.h \
     server.h \
     database.h

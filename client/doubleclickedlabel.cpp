@@ -1,5 +1,4 @@
 #include "doubleclickedlabel.h"
-#include <QDebug>
 
  DoubleClickedLabel:: DoubleClickedLabel(QWidget *pParent):QPushButton(pParent)
 {

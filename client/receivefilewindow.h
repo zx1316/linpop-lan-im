@@ -2,33 +2,26 @@
 #define RECEIVEFILEWINDOW_H
 
 #include <QWidget>
-#include <QThread>
-#include <QMessageBox>
-#include "recvthread.h"
+#include "serverrecvthread.h"
 
 namespace Ui {
 class ReceiveFileWindow;
 }
 
-class ReceiveFileWindow : public QWidget
-{
+class ReceiveFileWindow : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ReceiveFileWindow(QString path, QString sender, QWidget *parent = nullptr);
+    explicit ReceiveFileWindow(const QString &path, const QString &sender, const QString &ip, QWidget *parent = nullptr);
     ~ReceiveFileWindow();
 
 public slots:
-    void updateProgress(int);
-    void onFailed();
-//    void onNoRequest();
-    void onGetPort(int);
+    void onFail();
     void onFinish();
 
 private:
     Ui::ReceiveFileWindow *ui;
-    RecvThread *thread = nullptr;
-    QString sender;
+    ServerRecvThread *thread = nullptr;
 
 signals:
     void accept(QString, int);

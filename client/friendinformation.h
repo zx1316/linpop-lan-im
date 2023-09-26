@@ -13,32 +13,47 @@
 #define FRIENDINFORMATION_H
 
 #include <QWidget>
-#include <friend.h>
 #include <QToolButton>
-#include <chatwindow.h>
+#include "network.h"
+#include "ui_friendinformation.h"
 
 namespace Ui {
 class FriendInformation;
 }
 
-class FriendInformation : public QWidget
-{
+class FriendInformation : public QWidget {
     Q_OBJECT
 
-public:
-    explicit FriendInformation(Friend& f,QWidget *parent = nullptr);
-    ~FriendInformation();
-    QToolButton* undefined_button;
-    QString username();
-    void setBackgroundColor(bool);
-    static QString mapStringToPicture(QString &inputString);
-    bool _real;
 private:
     Ui::FriendInformation *ui;
-    bool _state;
-public slots:
+    QString name;   // 这个东西现在是绝对的主键了！！！
+
+public:
+    explicit FriendInformation(const User& u, QWidget *parent = nullptr);
+    ~FriendInformation();
+    void setNewMessage() {
+        this->setStyleSheet("#widget{border:1px solid black;background-color:chartreuse}");
+    }
+    void refreshColor() {
+        this->setStyleSheet((name[0] == '_' || ui->ip_label->text() != "") ? "#widget{border:1px solid black;background:Cyan}":"#widget{border:1px solid black;background:gray}");
+    }
+    void setIp(const QString &ip) {
+        ui->ip_label->setText(ip);
+    }
+    QString getIp() {
+        return ui->ip_label->text();
+    }
+    QString getName() {
+        return name;
+    }
+    void setIcon(const QString &imgName) {
+        ui->picture_label->setIcon(QIcon(QCoreApplication::applicationDirPath() + "/images/" + imgName));
+    }
+
+private slots:
     void onUndefinedButtonClicked();
     void onDoubleClickedSignal();
+
 signals:
     void undefinedButtonClickedSignal(FriendInformation* uf);
     void doubleClickedSignal(FriendInformation* uf);

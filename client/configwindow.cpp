@@ -1,26 +1,19 @@
 #include "configwindow.h"
 #include "ui_configwindow.h"
 
-ConfigWindow::ConfigWindow(QWidget *parent, QString &ip, int *port) :
-    QWidget(parent),
-    ui(new Ui::ConfigWindow),
-    ip(ip),
-    port(port)
-{
+ConfigWindow::ConfigWindow(Network *network, QWidget *parent) : QWidget(parent), ui(new Ui::ConfigWindow), network(network) {
     ui->setupUi(this);
     this->setAttribute(Qt::WA_QuitOnClose, false);
-    ui->ipEdit->setText(ip);
-    ui->portEdit->setText(QString::number(*port));
+    ui->ipEdit->setText(network->getIp());
+    ui->portEdit->setText(QString::number(network->getPort()));
     connect(ui->confirmButton, &QPushButton::clicked, this, &ConfigWindow::onConfirmClicked);
 }
 
-ConfigWindow::~ConfigWindow()
-{
+ConfigWindow::~ConfigWindow() {
     delete ui;
 }
 
 void ConfigWindow::onConfirmClicked() {
-    *port = ui->portEdit->text().toInt();
-    ip = ui->ipEdit->text();
+    network->setIpAndPort(ui->ipEdit->text(), ui->portEdit->text().toUShort());
     close();
 }
