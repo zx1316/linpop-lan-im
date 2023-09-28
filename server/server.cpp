@@ -1,7 +1,7 @@
 #include "server.h"
 #include <QWebSocket>
 
-Server::Server(quint16 port) {
+Server::Server(quint16 port) : serverSocket("LinpopServer", QWebSocketServer::NonSecureMode) {
     if (!db.isOpen()) {
         qDebug() << "Failed to open database.";
         exit(1);

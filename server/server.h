@@ -8,7 +8,7 @@ class Server : public QObject {
     Q_OBJECT
 
 private:
-    QWebSocketServer serverSocket = QWebSocketServer("LinpopServer", QWebSocketServer::NonSecureMode);
+    QWebSocketServer serverSocket;
     QMutex clientMapLock;
     QHash<Client *, QThread *> threadMap;
     QHash<QString, Client *> clientMap;
