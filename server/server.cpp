@@ -24,7 +24,8 @@ Server::~Server() {
 void Server::onNewConnection() {
     QThread *thread = new QThread;
     QWebSocket *socket = serverSocket.nextPendingConnection();
-    Client *client = new Client(socket, clientMap, imgJsonMap, db, clientMapLock);
+    socket->setMaxAllowedIncomingMessageSize(2 * 1024 * 1024);
+    Client *client = new Client(socket, clientMap, imgJsonMap, db, clientMapLock);    
     qDebug() << "new connection. ip:" << socket->peerAddress() << "thread" << QThread::currentThread();
     client->moveToThread(thread);
     connect(socket, &QWebSocket::binaryMessageReceived, client, &Client::onBinaryMessageReceived);
