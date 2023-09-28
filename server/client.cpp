@@ -44,7 +44,7 @@ void Client::handleJson(const QJsonObject &jsonObject) {
         if (name1.isNull() || pwd.isNull() || base64.isNull()) {
             return;
         }
-        objectReturn["cmd"] = "register";
+        objectReturn["cmd"] = cmd;
         if (name1[0] != '_') {
             auto array = QByteArray::fromBase64(base64.toLatin1());
             auto imgName = QString(QCryptographicHash::hash(array, QCryptographicHash::Md5).toHex()) + ".png";
@@ -140,6 +140,7 @@ void Client::handleJson(const QJsonObject &jsonObject) {
             if (result == 0) {
                 objectReturn["cmd"] = cmd;
                 objectReturn["status"] = "success";
+                send(objectReturn);
                 objectToOthers["cmd"] = "be_added";
                 objectToOthers["name"] = groupName;
                 objectToOthers["ip"] = "";
