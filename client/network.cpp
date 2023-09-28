@@ -8,40 +8,40 @@
 #include <QFile>
 
 Network::Network(QObject *parent) : QObject{parent} {
+    socket.setMaxAllowedIncomingMessageSize(4 * 1024 * 1024);
     timer.setInterval(1000);
     connect(&timer, &QTimer::timeout, this, [=] {
         timer.stop();
         emit connectedSignal();
     });
-    connect(&socket, &QTcpSocket::stateChanged, this, &Network::onStateChanged);
-    connect(&socket, &QTcpSocket::readyRead, this, &Network::onReadyRead);
+    connect(&socket, &QWebSocket::stateChanged, this, &Network::onStateChanged);
+    connect(&socket, &QWebSocket::binaryMessageReceived, this, &Network::onBinaryMessageReceived);
+    connect(&socket, &QWebSocket::textMessageReceived, this, &Network::onTextMessageReceived);
 }
 
 Network::~Network() {
     disconnect(&socket);
     disconnect(&timer);
-    socket.disconnectFromHost();
-    delete[] recvArr;
+    socket.close();
 }
 
 void Network::writeJson(const QJsonObject &obj) {
     QJsonDocument document(obj);
     auto array = document.toJson(QJsonDocument::Compact);
-    qint32 len = array.length();
-    if (len > 4096) {
+    if (array.length() > 4096) {
         array = qCompress(array);
-        len = -array.length();
+        socket.sendBinaryMessage(array);
+    } else {
+        socket.sendTextMessage(array);
     }
-    array.insert(0, reinterpret_cast<char *>(&len), 4);
-    socket.write(array);
 }
 
-void Network::requestRegister(const QString &name, const QString &pwdHash, const QString &imgName) {
+void Network::requestRegister(const QString &name, const QString &pwdHash, const QString &imgBase64) {
     QJsonObject obj;
     obj["cmd"] = "register";
     obj["name"] = name;
     obj["pwd"] = pwdHash;
-    obj["img"] = imgName;
+    obj["base64"] = imgBase64;
     writeJson(obj);
 }
 
@@ -207,7 +207,7 @@ void Network::handleJson(const QJsonObject &obj) {
         auto status = obj["status"].toString();
         if (status == "success") {
             auto imgName = obj["img"].toString();
-            QFile file(QCoreApplication::applicationDirPath() + "/images/" + imgName);
+            QFile file(QCoreApplication::applicationDirPath() + "/cached_images/" + imgName);
             if (!file.exists()) {
                 requestImg(imgName, obj);
             } else {
@@ -215,7 +215,7 @@ void Network::handleJson(const QJsonObject &obj) {
                 for (auto item : list) {
                     auto userObj = item.toObject();
                     auto imgName1 = userObj["img"].toString();
-                    QFile file(QCoreApplication::applicationDirPath() + "/images/" + imgName1);
+                    QFile file(QCoreApplication::applicationDirPath() + "/cached_images/" + imgName1);
                     if (!file.exists()) {
                         requestImg(imgName1, obj);
                         return;
@@ -253,7 +253,7 @@ void Network::handleJson(const QJsonObject &obj) {
         auto name = obj["name"].toString();
         if (status == "success") {
             auto imgName = obj["img"].toString();
-            QFile file(QCoreApplication::applicationDirPath() + "/images/" + imgName);
+            QFile file(QCoreApplication::applicationDirPath() + "/cached_images/" + imgName);
             if (!file.exists()) {
                 requestImg(imgName, obj);
             } else {
@@ -261,11 +261,11 @@ void Network::handleJson(const QJsonObject &obj) {
                 emit addFriendSuccessSignal(name, ip, imgName);
             }
         } else if (status == "fail") {
-            emit addFriendFailSignal(name);
+            emit addFriendFailSignal();
         }
     } else if (cmd == "be_added") {
         auto imgName = obj["img"].toString();
-        QFile file(QCoreApplication::applicationDirPath() + "/images/" + imgName);
+        QFile file(QCoreApplication::applicationDirPath() + "/cached_images/" + imgName);
         if (!file.exists()) {
             requestImg(imgName, obj);
         } else {
@@ -285,7 +285,7 @@ void Network::handleJson(const QJsonObject &obj) {
         emit friendOfflineSignal(name);
     } else if (cmd == "img_changed") {
         auto imgName = obj["img"].toString();
-        QFile file(QCoreApplication::applicationDirPath() + "/images/" + imgName);
+        QFile file(QCoreApplication::applicationDirPath() + "/cached_images/" + imgName);
         if (!file.exists()) {
             requestImg(imgName, obj);
         } else {
@@ -296,7 +296,7 @@ void Network::handleJson(const QJsonObject &obj) {
         auto type = obj["type"].toString();
         auto msg = obj["msg"].toString();
         if (type == "img") {
-            QFile file(QCoreApplication::applicationDirPath() + "/images/" + msg);
+            QFile file(QCoreApplication::applicationDirPath() + "/cached_images/" + msg);
             if (!file.exists()) {
                 requestImg(msg, obj);
                 return;
@@ -322,7 +322,7 @@ void Network::handleJson(const QJsonObject &obj) {
         auto imgName = obj["img"].toString();
         auto base64 = obj["base64"].toString();
         auto array = QByteArray::fromBase64(base64.toLatin1());
-        QFile file(QCoreApplication::applicationDirPath() + "/images/" + imgName);
+        QFile file(QCoreApplication::applicationDirPath() + "/cached_images/" + imgName);
         file.open(QIODevice::WriteOnly);
         file.write(array);
         file.close();
@@ -337,7 +337,7 @@ void Network::handleJson(const QJsonObject &obj) {
             auto type = obj1["type"].toString();
             auto msg = obj1["msg"].toString();
             if (type == "img") {
-                QFile file(QCoreApplication::applicationDirPath() + "/images/" + msg);
+                QFile file(QCoreApplication::applicationDirPath() + "/cached_images/" + msg);
                 if (!file.exists()) {
                     requestImg(msg, obj);
                     return;
@@ -362,7 +362,7 @@ void Network::handleJson(const QJsonObject &obj) {
         emit fileListSignal(groupName, list);
     } else if (cmd == "request_img") {
         auto imgName = obj["img"].toString();
-        QFile file(QCoreApplication::applicationDirPath() + "/images/" + imgName);
+        QFile file(QCoreApplication::applicationDirPath() + "/cached_images/" + imgName);
         file.open(QIODevice::ReadOnly);
         auto array = file.readAll();
         file.close();
@@ -378,39 +378,14 @@ void Network::handleJson(const QJsonObject &obj) {
     }
 }
 
-void Network::onReadyRead() {
-    qint64 len;
-    while ((len = socket.read(recvArr + recvLen, exceptLen - recvLen)) > 0) {
-        recvLen += len;
-        if (recvLen == exceptLen) {
-            if (isReadyReadJson) {
-                exceptLen = 4;
-                recvArr[recvLen] = 0;
-                // 开始处理
-                QByteArray array;
-                if (isCompressed) {
-                    array = qUncompress(reinterpret_cast<unsigned char *>(recvArr), recvLen);
-                } else {
-                    array = QByteArray(recvArr, recvLen);
-                }
-                auto document = QJsonDocument::fromJson(array);
-                handleJson(document.object());
-            } else {
-                exceptLen = *reinterpret_cast<int *>(recvArr);
-                if (exceptLen < 0) {
-                    isCompressed = true;
-                    exceptLen = -exceptLen;
-                } else {
-                    isCompressed = false;
-                }
-                if (exceptLen > 4 * 1024 * 1024) {
-                    return;
-                }
-            }
-            isReadyReadJson = !isReadyReadJson;
-            recvLen = 0;
-        }
-    }
+void Network::onBinaryMessageReceived(QByteArray array) {
+    auto document = QJsonDocument::fromJson(qUncompress(array));
+    handleJson(document.object());
+}
+
+void Network::onTextMessageReceived(QString str) {
+    auto document = QJsonDocument::fromJson(str.toUtf8());
+    handleJson(document.object());
 }
 
 void Network::onStateChanged() {

@@ -32,7 +32,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>服务器设置</string>
+   <string>设置</string>
   </property>
   <widget class="QWidget" name="horizontalLayoutWidget">
    <property name="geometry">
@@ -141,7 +141,7 @@
   <widget class="QPushButton" name="confirmButton">
    <property name="geometry">
     <rect>
-     <x>210</x>
+     <x>130</x>
      <y>250</y>
      <width>121</width>
      <height>41</height>
@@ -149,6 +149,19 @@
    </property>
    <property name="text">
     <string>确定</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="clearCacheButton">
+   <property name="geometry">
+    <rect>
+     <x>290</x>
+     <y>250</y>
+     <width>121</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>清空图片缓存</string>
    </property>
   </widget>
  </widget>

@@ -34,7 +34,11 @@ void ServerSendThread::onNewConnection() {
         connect(socket, &QTcpSocket::disconnected, this, &ServerSendThread::onDisconnected, Qt::DirectConnection);
         connect(socket, &QTcpSocket::bytesWritten, this, &ServerSendThread::onBytesWritten, Qt::DirectConnection);
         file.open(QIODevice::ReadOnly);
-        size = file.size();
+        if (!file.isOpen()) {
+            size = -1;
+        } else {
+            size = file.size();
+        }
         socket->write(reinterpret_cast<char *>(&size), 8);
     } else {
         socket1->abort();

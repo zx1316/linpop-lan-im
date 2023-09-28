@@ -15,11 +15,11 @@ IndexWindow::IndexWindow(const QString &username, const QString &img, const QLis
     //初始化用户的昵称，ip信息，头像
     ui->username_label->setText(username);
     ui->ip_label->setText(network->getIp());
-    ui->picture->setPixmap(QPixmap::fromImage(QImage(QCoreApplication::applicationDirPath() + "/images/" + img)));
+    ui->picture->setPixmap(QPixmap::fromImage(QImage(QCoreApplication::applicationDirPath() + "/cached_images/" + img)));
 
     //初始化好友列表
     this->_friend_list_layout = new QVBoxLayout();
-    ui->scrollAreaWidgetContents->setLayout(this->_friend_list_layout);
+    ui->scrollAreaWidgetContents->setLayout(_friend_list_layout);
     for (auto item : friendList) {
         auto fi = new FriendInformation(item);
         if (item.isNewMsg) {
@@ -31,8 +31,8 @@ IndexWindow::IndexWindow(const QString &username, const QString &img, const QLis
     }
 
     //连接
-    connect(ui->add_friend_button,SIGNAL(clicked()),this,SLOT(onAddFriendButtonClicked()));
-    connect(ui->create_group_button,SIGNAL(clicked()),this,SLOT(onCreateGroupButtonClicked()));
+    connect(ui->add_friend_button, SIGNAL(clicked()), this, SLOT(onAddFriendButtonClicked()));
+    connect(ui->create_group_button, SIGNAL(clicked()), this, SLOT(onCreateGroupButtonClicked()));
     connect(ui->changeImageButton, &QPushButton::clicked, this, &IndexWindow::onChangeImgButtonClicked);
 
     connect(network, &Network::groupMemberListSignal, this, &IndexWindow::onGroupMemberListFeedbackSignal);
@@ -70,7 +70,7 @@ IndexWindow::~IndexWindow() {
 
 void IndexWindow::deleteFriendFromUI(const QString &name) {
     FriendInformation *deleted = nullptr;
-    for(auto fi:ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()){
+    for(auto fi : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()){
         if (name == fi->getName()) {
             deleted = fi;
             break;
@@ -83,7 +83,7 @@ void IndexWindow::deleteFriendFromUI(const QString &name) {
 
 void IndexWindow::insertFriendToUI(const User &user) {
     QList<FriendInformation *> list;
-    for (auto f : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
+    for (auto f : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()) {
         list.append(f);
         _friend_list_layout->removeWidget(f);
     }
@@ -138,8 +138,8 @@ QString IndexWindow::fileSizeFormatter(qint64 size) {
 void IndexWindow::onAddFriendButtonClicked() {
     launcher->gachaLaunch();
     _add_friends_window = new AddFriendsWindow(ui->username_label->text(), launcher);
-    connect(_add_friends_window,&AddFriendsWindow::addFriendRequestSignal, this, &IndexWindow::onAddFriendRequestSignal);
-    connect(_add_friends_window,&AddFriendsWindow::windowClosed,this, &IndexWindow::onAddFriendWindowClosed);
+    connect(_add_friends_window, &AddFriendsWindow::addFriendRequestSignal, this, &IndexWindow::onAddFriendRequestSignal);
+    connect(_add_friends_window, &AddFriendsWindow::windowClosed, this, &IndexWindow::onAddFriendWindowClosed);
     _add_friends_window->show();
     ui->add_friend_button->setDisabled(true);
 }
@@ -147,21 +147,21 @@ void IndexWindow::onAddFriendButtonClicked() {
 void IndexWindow::onCreateGroupButtonClicked() {
     launcher->gachaLaunch();
     QList<QString> friendList;
-    for (auto f : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
+    for (auto f : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()) {
         if (f->getName()[0] != '_') {
             friendList.append(f->getName());
         }
     }
-    _create_group_window = new CreateGroupWindow(friendList, ui->username_label->text(), launcher);  // 这个再想办法
-    connect(_create_group_window,&CreateGroupWindow::createGroupRequestSignal,this,&IndexWindow::onCreateGroupRequestSignal);
-    connect(_create_group_window,&CreateGroupWindow::windowClosed,this, &IndexWindow::onCreateGroupWindowClosed);
+    _create_group_window = new CreateGroupWindow(friendList, ui->username_label->text(), launcher);
+    connect(_create_group_window, &CreateGroupWindow::createGroupRequestSignal, this, &IndexWindow::onCreateGroupRequestSignal);
+    connect(_create_group_window, &CreateGroupWindow::windowClosed, this, &IndexWindow::onCreateGroupWindowClosed);
     _create_group_window->show();
     ui->create_group_button->setDisabled(true);
 }
 
 void IndexWindow::onChangeImgButtonClicked() {
     launcher->gachaLaunch();
-    auto path = QFileDialog::getOpenFileName(this, "打开png图片", "../", "Images (*.png)");
+    auto path = QFileDialog::getOpenFileName(this, "选择一张png图片", "../", "Images (*.png)");
     if (path != "") {
         QImage originalImage(path);
         // 确定裁剪区域以获取正方形部分
@@ -177,15 +177,15 @@ void IndexWindow::onChangeImgButtonClicked() {
         buffer.open(QIODevice::WriteOnly);
         squareImage.save(&buffer, "PNG");
         QString imgName = QCryptographicHash::hash(array, QCryptographicHash::Md5).toHex() + ".png";
-        QFile file(QCoreApplication::applicationDirPath() + "/images/" + imgName);
+        QFile file(QCoreApplication::applicationDirPath() + "/cached_images/" + imgName);
         if (!file.exists()) {
-            squareImage.save(QCoreApplication::applicationDirPath() + "/images/" + imgName, "PNG");
+            squareImage.save(QCoreApplication::applicationDirPath() + "/cached_images/" + imgName, "PNG");
         }
         network->requestChangeImg(imgName);
     }
 }
 
-void IndexWindow::onChatWithFriendSignal(FriendInformation* fi) {
+void IndexWindow::onChatWithFriendSignal(FriendInformation *fi) {
     launcher->gachaLaunch();
     QString name = fi->getName();
     if (!_chat_windows.contains(name)) {
@@ -201,14 +201,14 @@ void IndexWindow::onChatWithFriendSignal(FriendInformation* fi) {
         connect(chat_window,&ChatWindow::groupFileDownloadSignal,this,&IndexWindow::onGroupFileDownloadSignal);
         connect(chat_window,&ChatWindow::groupFileUploadSignal,this,&IndexWindow::onGroupFileUploadSignal);
         connect(chat_window,&ChatWindow::windowClosed, this, &IndexWindow::onChatWindowClosed);
-        network->requestLatestHistory(name);
         chat_window->show();
+        network->requestLatestHistory(name);
     }
 }
 
-void IndexWindow::onDeleteFriendSignal(FriendInformation* fi) {
+void IndexWindow::onDeleteFriendSignal(FriendInformation *fi) {
     launcher->gachaLaunch();
-    if (QMessageBox::question(this, tr("删除好友"), tr("确定要删除该好友吗？"),QMessageBox::Yes,QMessageBox::No)==QMessageBox::Yes) {
+    if (QMessageBox::question(this, "删除确认", "确定要删除该好友/聊天室吗？", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
         QString name = fi->getName();
         if (_chat_windows.contains(name)) {
             _chat_windows[name]->close();
@@ -244,7 +244,7 @@ void IndexWindow::onAddFriendSuccessFeedbackSignal(QString name, QString ip, QSt
     insertFriendToUI({name, imgName, ip, false});
 }
 
-void IndexWindow::onAddFriendFailFeedbackSignal(QString name) {
+void IndexWindow::onAddFriendFailFeedbackSignal() {
     if (_add_friends_window != nullptr) {
         _add_friends_window->onAddFriendFail();
     }
@@ -252,13 +252,13 @@ void IndexWindow::onAddFriendFailFeedbackSignal(QString name) {
 
 void IndexWindow::onBeAddedFeedbackSignal(QString name, QString ip, QString imgName) {
     if (name[0] != '_') {
-        QMessageBox::information(this,"喜报","你已被"+name+"添加为好友！");
+        QMessageBox::information(this, "喜报", "你已被" + name + "添加为好友！");
     }
     insertFriendToUI({name, imgName, ip, false});
 }
 
 void IndexWindow::onBeDeletedFeedbackSignal(QString name) {
-    QMessageBox::information(this,"悲报","你已被好友"+name+"删除,玩原神玩的！");
+    QMessageBox::information(this, "悲报", "你已被好友" + name + "删除，玩原神玩的！");
     if(_chat_windows.contains(name)){
         _chat_windows[name]->close();
     }
@@ -269,7 +269,9 @@ void IndexWindow::onFriendOnlineFeedbackSignal(QString name, QString ip) {
     for (auto f : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
         if (f->getName() == name) {
             f->setIp(ip);
-            f->refreshColor();
+            if (!f->isNewMsg()) {
+                f->refreshColor();
+            }
             break;
         }
     }
@@ -279,7 +281,9 @@ void IndexWindow::onFriendOfflineFeedbackSignal(QString name) {
     for (auto f : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
         if (f->getName() == name) {
             f->setIp("");
-            f->refreshColor();
+            if (!f->isNewMsg()) {
+                f->refreshColor();
+            }
             break;
         }
     }
@@ -309,8 +313,8 @@ void IndexWindow::onNewMsgFeedbackSignal(QString innerName, QString sender, QStr
 }
 
 void IndexWindow::onRequestFileFeedbackSignal(QString sender, QString fileName, qint64 size) {
-    if (QMessageBox::question(this,"传输文件请求",sender + "请求向您发送文件" + fileName + " (" + IndexWindow::fileSizeFormatter(size) + ")",QMessageBox::Yes,QMessageBox::No)==QMessageBox::Yes){
-        QString path = QFileDialog::getSaveFileName(this,"保存文件", "../" + fileName);
+    if (QMessageBox::question(this, "传输文件请求", sender + "请求向您发送文件" + fileName + " (" + IndexWindow::fileSizeFormatter(size) + ")", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
+        QString path = QFileDialog::getSaveFileName(this, "保存文件", "../" + fileName);
         if (path == "") {
             network->requestRejectFile(sender);
         } else {
@@ -334,7 +338,7 @@ void IndexWindow::onRequestFileFeedbackSignal(QString sender, QString fileName, 
 void IndexWindow::onAcceptFileFeedbackSignal(QString receiver, quint16 port) {
     if (_chat_windows.contains(receiver)) {
         QString ip;
-        for (auto f : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
+        for (auto f : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()) {
             if (f->getName() == receiver) {
                 ip = f->getIp();
                 break;
@@ -363,13 +367,13 @@ void IndexWindow::onFileListFeedbackSignal(QString groupName, QList<GroupFile> l
 }
 
 void IndexWindow::onDisconnectedSignal() {
-    QMessageBox::information(this,"错误","与服务器断开连接，返回登录窗口");
+    QMessageBox::critical(this, "错误", "与服务器断开连接，返回登录窗口");
     close();
 }
 
 // add friend window
 void IndexWindow::onAddFriendRequestSignal(QString name) {
-    for (auto fi : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
+    for (auto fi : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()) {
         if (name == fi->getName() && _add_friends_window != nullptr) {
             _add_friends_window->onAddFriendAlready();
             return;
@@ -391,7 +395,7 @@ void IndexWindow::onSendMsgSuccessSignal(QString name, QString msg, QString type
 
 // create group window
 void IndexWindow::onCreateGroupRequestSignal(QString groupName, QString imgName, QList<QString> list) {
-    for (auto fi : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
+    for (auto fi : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()) {
         if (groupName == fi->getName() && _create_group_window != nullptr) {
             _create_group_window->onCreateGroupFailSignal();
             return;
@@ -449,11 +453,10 @@ void IndexWindow::onGetPort(QString name, quint16 port) {
 }
 
 void IndexWindow::closeEvent(QCloseEvent *) {
-    disconnect(network, nullptr, this, nullptr);
-    for (ChatWindow* w:_chat_windows) {
+    for (ChatWindow *w:_chat_windows) {
         w->close();
     }
-    for (FriendInformation* f:ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
+    for (FriendInformation *f:ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()) {
         disconnect(f);
         delete f;
     }
@@ -463,7 +466,11 @@ void IndexWindow::closeEvent(QCloseEvent *) {
     if (_create_group_window != nullptr) {
         _create_group_window->close();
     }
-    network->disconnectFromServer();
-    auto lw = new LoginWindow(network, launcher, ui->username_label->text());
-    lw->show();
+    disconnect(network, nullptr, this, nullptr);
+    if (network->isDisconnected()) {
+        auto lw = new LoginWindow(network, launcher, ui->username_label->text());
+        lw->show();
+    } else {
+        network->disconnectFromServer();
+    }
 }

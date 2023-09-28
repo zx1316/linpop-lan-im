@@ -2,13 +2,13 @@
 #define SERVER_H
 #include "database.h"
 #include "client.h"
-#include <QTcpServer>
+#include <QWebSocketServer>
 
 class Server : public QObject {
     Q_OBJECT
 
 private:
-    QTcpServer serverSocket;
+    QWebSocketServer serverSocket = QWebSocketServer("LinpopServer", QWebSocketServer::NonSecureMode);
     QMutex clientMapLock;
     QHash<Client *, QThread *> threadMap;
     QHash<QString, Client *> clientMap;
@@ -21,8 +21,9 @@ public:
 
 public slots:
     void onNewConnection();
-    void toWriteData(QByteArray array, QTcpSocket *socket);
-    void toClose(QTcpSocket *socket);
+    void toSendTextMessage(QString str, QWebSocket *socket);
+    void toSendBinaryMessage(QByteArray array, QWebSocket *socket);
+    void toClose(QWebSocket *socket);
     void onClear(Client *client);
 };
 

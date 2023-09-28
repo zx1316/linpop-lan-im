@@ -2,8 +2,7 @@
 #define NETWORK_H
 
 #include <QObject>
-#include <QTcpSocket>
-#include <QHostAddress>
+#include <QWebSocket>
 #include <QTimer>
 
 struct User {
@@ -33,16 +32,11 @@ class Network : public QObject {
 
 private:
     QTimer timer;
-    QTcpSocket socket;
+    QWebSocket socket;
     QMultiHash<QString, QJsonObject> imgJsonMap;
     QHash<QString, ChatRecord> msgCache;
     QString serverIp;
-    char *recvArr = new char[4 * 1024 * 1024];
-    qint32 recvLen = 0;
-    qint32 exceptLen = 4;
     quint16 serverPort = 8848;
-    bool isReadyReadJson = false;
-    bool isCompressed;
     void handleJson(const QJsonObject &obj);
     void writeJson(const QJsonObject &obj);
     void requestImg(const QString &imgName, const QJsonObject &obj);
@@ -55,12 +49,12 @@ public:
         serverPort = port;
     }
     void connectToServer() {
-        socket.connectToHost(serverIp, serverPort);
+        socket.open(QUrl("ws://" + serverIp + ":" + QString::number(serverPort)));
     }
     void disconnectFromServer() {
-        socket.disconnectFromHost();
+        socket.close();
     }
-    void requestRegister(const QString &name, const QString &pwdHash, const QString &imgName);
+    void requestRegister(const QString &name, const QString &pwdHash, const QString &imgBase64);
     void requestLogin(const QString &name, const QString &pwdHash);
     void requestGroupMemberList(const QString &name);
     void requestCreateGroup(const QString &groupName, const QString &imgName, const QList<QString> &memberList);
@@ -86,9 +80,13 @@ public:
     QString getLocalIp() {
         return socket.localAddress().toString();
     }
+    bool isDisconnected() {
+        return socket.state() == QAbstractSocket::UnconnectedState;
+    }
 
 private slots:
-    void onReadyRead();
+    void onBinaryMessageReceived(QByteArray array);
+    void onTextMessageReceived(QString str);
     void onStateChanged();
 
 signals:
@@ -101,7 +99,7 @@ signals:
     void createGroupSuccessSignal();
     void createGroupFailSignal();
     void addFriendSuccessSignal(QString name, QString ip, QString imgName);
-    void addFriendFailSignal(QString name);
+    void addFriendFailSignal();
     void beAddedSignal(QString name, QString ip, QString imgName);
     void beDeletedSignal(QString name);
     void friendOnlineSignal(QString name, QString ip);

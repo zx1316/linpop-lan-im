@@ -27,18 +27,25 @@ class FriendInformation : public QWidget {
 private:
     Ui::FriendInformation *ui;
     QString name;   // 这个东西现在是绝对的主键了！！！
+    bool newMsg = false;
 
 public:
     explicit FriendInformation(const User& u, QWidget *parent = nullptr);
     ~FriendInformation();
     void setNewMessage() {
+        newMsg = true;
         this->setStyleSheet("#widget{border:1px solid black;background-color:chartreuse}");
     }
     void refreshColor() {
-        this->setStyleSheet((name[0] == '_' || ui->ip_label->text() != "") ? "#widget{border:1px solid black;background:Cyan}":"#widget{border:1px solid black;background:gray}");
+        newMsg = false;
+        this->setStyleSheet((name[0] == '_' || ui->ip_label->text() != "离线") ? "#widget{border:1px solid black;background:Cyan}":"#widget{border:1px solid black;background:gray}");
     }
     void setIp(const QString &ip) {
-        ui->ip_label->setText(ip);
+        if (ip == "") {
+            ui->ip_label->setText("离线");
+        } else {
+            ui->ip_label->setText(ip);
+        }
     }
     QString getIp() {
         return ui->ip_label->text();
@@ -47,7 +54,10 @@ public:
         return name;
     }
     void setIcon(const QString &imgName) {
-        ui->picture_label->setIcon(QIcon(QCoreApplication::applicationDirPath() + "/images/" + imgName));
+        ui->picture_label->setIcon(QIcon(QCoreApplication::applicationDirPath() + "/cached_images/" + imgName));
+    }
+    bool isNewMsg() {
+        return newMsg;
     }
 
 private slots:

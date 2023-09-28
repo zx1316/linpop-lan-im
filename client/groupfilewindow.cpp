@@ -92,6 +92,7 @@ void GroupFileWindow::onUploadClicked() {
             ui->downloadButton->setDisabled(false);
             ui->uploadButton->setDisabled(false);
             ui->deleteButton->setDisabled(false);
+            ui->progressBar->setValue(0);
         });
         connect(sendThread, &ServerSendThread::progress, this, [=](qint8 progress) {
             ui->progressBar->setValue(progress);
@@ -143,7 +144,7 @@ void GroupFileWindow::onDeleteClicked() {
             table->removeRow(selectedRow);
         }
     } else {
-        QMessageBox::information(this, "删除失败", "您不能删除不是您上传的文件！");
+        QMessageBox::critical(this, "删除失败", "您不能删除不是您上传的文件！");
     }
 }
 
@@ -164,6 +165,7 @@ void GroupFileWindow::onDownloadSuccess() {
     ui->downloadButton->setDisabled(false);
     ui->uploadButton->setDisabled(false);
     ui->deleteButton->setDisabled(false);
+    ui->progressBar->setValue(0);
 }
 
 void GroupFileWindow::onDownloadFail() {

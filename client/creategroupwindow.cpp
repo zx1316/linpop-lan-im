@@ -10,8 +10,8 @@ CreateGroupWindow::CreateGroupWindow(const QList<QString> &friendList, const QSt
     ui->unselectedList->addItems(friendList);
 
     //连接按钮
-    connect(ui->create_group_button,&QPushButton::clicked,this,&CreateGroupWindow::onCreateGroupButtonClicked);
-    connect(ui->selectImgButton,SIGNAL(clicked()),this,SLOT(onSelectImgButtonClicked()));
+    connect(ui->create_group_button, &QPushButton::clicked, this, &CreateGroupWindow::onCreateGroupButtonClicked);
+    connect(ui->selectImgButton, SIGNAL(clicked()), this, SLOT(onSelectImgButtonClicked()));
     connect(ui->addButton, &QPushButton::clicked, this, &CreateGroupWindow::onAddButtonClicked);
     connect(ui->removeButton, &QPushButton::clicked, this, &CreateGroupWindow::onRemoveButtonClicked);
 }
@@ -21,7 +21,7 @@ void CreateGroupWindow::onCreateGroupSuccessSignal() {
 }
 
 void CreateGroupWindow::onCreateGroupFailSignal() {
-    QMessageBox::information(this,"创建失败","该聊天室已存在");
+    QMessageBox::critical(this,"创建失败","该聊天室已存在");
 }
 
 void CreateGroupWindow::onAddButtonClicked() {
@@ -52,15 +52,15 @@ void CreateGroupWindow::onCreateGroupButtonClicked() {
         }
     }
     if (group_name.startsWith('_')) {
-        QMessageBox::information(this,"创建失败","聊天室名称不能以下划线开头");
+        QMessageBox::critical(this, "创建失败", "聊天室名称不能以下划线开头");
     } else if (group_name.toUtf8().size() > 30) {
-        QMessageBox::information(this,"创建失败","聊天室名称过长");
+        QMessageBox::critical(this, "创建失败", "聊天室名称过长");
     } else if (group_name.isEmpty()) {
-        QMessageBox::information(this,"创建失败","聊天室名称不能为空");
+        QMessageBox::critical(this, "创建失败", "聊天室名称不能为空");
     }  else if (spaceCnt == group_name.length()) {
-        QMessageBox::information(this,"创建失败","聊天室名称不能全为空格");
+        QMessageBox::critical(this, "创建失败", "聊天室名称不能全为空格");
     } else if (ui->imageLabel->pixmap() == nullptr) {
-        QMessageBox::information(this,"创建失败","请设置头像");
+        QMessageBox::critical(this, "创建失败", "请设置头像");
     } else {
         QList<QString> list1;
         list1.append(selfName);
@@ -74,9 +74,9 @@ void CreateGroupWindow::onCreateGroupButtonClicked() {
         buffer.open(QIODevice::WriteOnly);
         image.save(&buffer, "PNG");
         QString imgName = QCryptographicHash::hash(array, QCryptographicHash::Md5).toHex() + ".png";
-        QFile file(QCoreApplication::applicationDirPath() + "/images/" + imgName);
+        QFile file(QCoreApplication::applicationDirPath() + "/cached_images/" + imgName);
         if (!file.exists()) {
-            image.save(QCoreApplication::applicationDirPath() + "/images/" + imgName, "PNG");
+            image.save(QCoreApplication::applicationDirPath() + "/cached_images/" + imgName, "PNG");
         }
         emit createGroupRequestSignal("_" + group_name, imgName, list1);
     }
@@ -84,7 +84,7 @@ void CreateGroupWindow::onCreateGroupButtonClicked() {
 
 void CreateGroupWindow::onSelectImgButtonClicked() {
     launcher->gachaLaunch();
-    auto path = QFileDialog::getOpenFileName(this, "打开png图片", "../", "Images (*.png)");
+    auto path = QFileDialog::getOpenFileName(this, "选择一张png图片", "../", "Images (*.png)");
     if (path != "") {
         QImage originalImage(path);
         // 确定裁剪区域以获取正方形部分

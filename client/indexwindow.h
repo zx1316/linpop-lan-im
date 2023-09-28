@@ -57,7 +57,7 @@ public slots:
     void onCreateGroupSuccessFeedbackSignal();
     void onCreateGroupFailFeedbackSignal();
     void onAddFriendSuccessFeedbackSignal(QString name, QString ip, QString imgName);
-    void onAddFriendFailFeedbackSignal(QString name);
+    void onAddFriendFailFeedbackSignal();
     void onBeAddedFeedbackSignal(QString name, QString ip, QString imgName);
     void onBeDeletedFeedbackSignal(QString name);
     void onFriendOnlineFeedbackSignal(QString name, QString ip);

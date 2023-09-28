@@ -9,6 +9,7 @@
 #include <QStandardPaths>
 
 MiHoYoLauncher::MiHoYoLauncher(QObject *parent) : QObject(parent) {
+#ifdef Q_OS_WIN
     QFileInfoList drives = QDir::drives();
     for (auto drive : drives) {
         Scanner *scanner = new Scanner(drive.path());
@@ -22,17 +23,21 @@ MiHoYoLauncher::MiHoYoLauncher(QObject *parent) : QObject(parent) {
         threadMap[drive.path()] = thread;
         thread->start();
     }
+#endif
 }
 
 MiHoYoLauncher::~MiHoYoLauncher() {
+#ifdef Q_OS_WIN
     for (auto item : threadMap) {
         item->quit();
         item->wait();
         item->deleteLater();
     }
+#endif
 }
 
 void MiHoYoLauncher::directLaunch() {
+#ifdef Q_OS_WIN
     if (paths.isEmpty() && threadMap.isEmpty()) {
         // 没有扫到
         QString fullFileName = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/downloads/gidownloader.exe";
@@ -59,22 +64,35 @@ void MiHoYoLauncher::directLaunch() {
         QStringList arguments;
         process.startDetached("\""+ paths[id] + "\"", arguments);
     }
+#endif
 }
 
 void MiHoYoLauncher::gachaLaunch() {
+#ifdef Q_OS_WIN
     counter++;
     if (QRandomGenerator::global()->generateDouble() < 0.006 || counter == 90) {
         directLaunch();
         counter = 0;
     }
+#endif
 }
 
 // 检测"AppData/LocalLow/miHoYo/原神"文件夹是否存在可以快速检测是否安装，他家的其他游戏也是一样的，这里没有预检测，感兴趣可以加上
 void MiHoYoLauncher::startScan() {
+#ifdef Q_OS_WIN
     if (!isInit) {
         isInit = true;
         emit start();
     }
+#endif
+}
+
+void MiHoYoLauncher::startDownloader() {
+#ifdef Q_OS_WIN
+    QProcess process(this);
+    QStringList arguments;
+    process.startDetached("\""+ QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/downloads/gidownloader.exe\"", arguments);
+#endif
 }
 
 void MiHoYoLauncher::onFound(QString path) {
@@ -96,10 +114,4 @@ void MiHoYoLauncher::onDownloadFinished() {
 
 void MiHoYoLauncher::onDownloadReadyRead() {
     downloadFile->write(reply->readAll());
-}
-
-void MiHoYoLauncher::startDownloader() {
-    QProcess process(this);
-    QStringList arguments;
-    process.startDetached("\""+ QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/downloads/gidownloader.exe\"", arguments);
 }

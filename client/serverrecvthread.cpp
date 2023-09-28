@@ -44,7 +44,7 @@ void ServerRecvThread::onReadyRead() {
     while (true) {
         if (size == -1) {
             socket->read(reinterpret_cast<char *>(&size), 8);
-            if (size == 0) {
+            if (size <= 0) {
                 socket->disconnectFromHost();
                 break;
             }
@@ -69,10 +69,11 @@ void ServerRecvThread::onReadyRead() {
 
 void ServerRecvThread::onDisconnected() {
     if (alreadySize == size) {
+        file.close();
         emit success();
     } else {
+        file.remove();
         emit fail();
     }
     server->close();
-    file.close();
 }

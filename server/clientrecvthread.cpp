@@ -50,11 +50,12 @@ void ClientRecvThread::onReadyRead() {
 void ClientRecvThread::onStateChanged() {
     if (socket->state() == QAbstractSocket::UnconnectedState) {
         if (alreadySize != size) {
+            file.remove();
             emit fail();
         } else {
+            file.close();
             emit success();
         }
-        file.close();
     } else if (socket->state() == QAbstractSocket::ConnectedState) {
         file.open(QIODevice::WriteOnly);
     }

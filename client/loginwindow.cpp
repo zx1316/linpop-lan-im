@@ -11,7 +11,7 @@ LoginWindow::LoginWindow(Network *network, MiHoYoLauncher *launcher, const QStri
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose, true);
     QDir dir(QCoreApplication::applicationDirPath());
-    dir.mkdir("images");
+    dir.mkdir("cached_images");
     ui->user_line_edit->setPlaceholderText("输入用户名");
     ui->password_line_edit->setPlaceholderText("输入密码");
     ui->user_line_edit->setText(name);

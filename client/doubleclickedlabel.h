@@ -3,21 +3,19 @@
 #include <QPushButton>
 #include <QTimer>
 
-class DoubleClickedLabel : public QPushButton
-{
+class DoubleClickedLabel : public QPushButton {
     Q_OBJECT
 public:
     explicit DoubleClickedLabel(QWidget *pParent);
 
 private:
+    QTimer m_cTimer;
     void mousePressEvent(QMouseEvent *e);
     void mouseDoubleClickEvent(QMouseEvent *event);
 
 private slots:
     void slotTimerTimeOut();
 
-private:
-    QTimer m_cTimer;
 signals:
     void doubleClickedSignal();
 };

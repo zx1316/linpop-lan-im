@@ -50,6 +50,9 @@ public:
     void onGroupFileSignal(const QList<GroupFile> &);
     void onSendMessageSuccessSignal(const QString &msg, const QString &type);
 
+protected:
+    bool eventFilter(QObject *target, QEvent *event) override;
+
 private:
     Ui::ChatWindow *ui;
     QString selfName;

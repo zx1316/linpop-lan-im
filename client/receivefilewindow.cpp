@@ -45,7 +45,7 @@ void ReceiveFileWindow::onFinish() {
 void ReceiveFileWindow::onFail() {
     thread->quit();
     thread = nullptr;
-    QMessageBox::information(this,"Failed:","接收失败");
+    QMessageBox::critical(this,"Failed:","接收失败");
     close();
 }
 

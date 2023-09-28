@@ -18,6 +18,7 @@ ChatWindow::ChatWindow(const QString &sender, const QString &receiver, const QSt
     ui->chatBrowser->setOpenLinks(false);
     inputColor.setRgb(0, 0, 0);
     ui->inputTextbox->setStyleSheet("color:rgb(0,0,0);");
+    ui->inputTextbox->installEventFilter(this);     // 实现回车发送
 
     connect(ui->sendButton, &QPushButton::clicked, this, &ChatWindow::onSendButtonClicked);
     connect(ui->fileButton, &QPushButton::clicked, this, &ChatWindow::onFileButtonClicked);
@@ -47,6 +48,21 @@ ChatWindow::~ChatWindow() {
     }
     emit windowClosed(receiver);
     delete ui;
+}
+// 实现回车发送
+bool ChatWindow::eventFilter(QObject *target, QEvent *event) {
+    if (target == ui->inputTextbox) {
+        // 获取按键信号
+        if (event->type() == QEvent::KeyPress) {
+            QKeyEvent *k = static_cast<QKeyEvent *>(event);
+            // 回车且没有按下shift
+            if (k->key() == Qt::Key_Return && !(k->modifiers() & Qt::ShiftModifier)) {
+                onSendButtonClicked();            //链接槽信号
+                return true;
+            }
+        }
+    }
+    return QWidget::eventFilter(target, event);
 }
 
 void ChatWindow::onAnchorClicked(QUrl url) {
@@ -109,7 +125,7 @@ void ChatWindow::onPictureButtonClicked() {
         QString suffix = info.suffix();
         if (info.size() > 1048576) {
             //太大了，返回
-            QMessageBox::information(this, "发送失败", "图片大小超过1MB，请考虑发送文件");
+            QMessageBox::critical(this, "发送失败", "图片大小超过1MB，请考虑发送文件");
             return;
         }
         QFile file(fileName);
@@ -117,7 +133,7 @@ void ChatWindow::onPictureButtonClicked() {
         QByteArray array = file.readAll();
         file.close();
         QString md5Name = QCryptographicHash::hash(array, QCryptographicHash::Md5).toHex();
-        QFile file1(QCoreApplication::applicationDirPath() + "/images/" + md5Name + "." + suffix);
+        QFile file1(QCoreApplication::applicationDirPath() + "/cached_images/" + md5Name + "." + suffix);
         if (!file1.exists()) {
             file1.open(QIODevice::WriteOnly);
             file1.write(array);
@@ -186,6 +202,7 @@ void ChatWindow::onSendButtonClicked() {
         QMessageBox::critical(this, "无法发送", "发送内容过长");
         return;
     }
+    // 没错，html形式！
     content.replace('&', "&amp;");
     content.replace(' ', "&ensp;");
     content.replace('<', "&lt;");
@@ -264,7 +281,7 @@ void ChatWindow::onReceiveHistorySignal(const QList<ChatRecord> &list) {
             html1 += item.msg;
         } else if (item.type == "img") {
             QString img = "<a href=\"%1\"><img src=\"%1\"></a>";
-            html1 += img.arg("file:///" + QCoreApplication::applicationDirPath() + "/images/" + item.msg);
+            html1 += img.arg("file:///" + QCoreApplication::applicationDirPath() + "/cached_images/" + item.msg);
         }
         html1 += "<br>";
     }
@@ -292,7 +309,7 @@ void ChatWindow::onNewMessageSignal(const QString &sender, const QString &msg, c
         htmlToShow += msg;
     } else if (type == "img") {
         QString img = "<a href=\"%1\"><img src=\"%1\"></a>";
-        htmlToShow += img.arg("file:///" + QCoreApplication::applicationDirPath() + "/images/" + msg);
+        htmlToShow += img.arg("file:///" + QCoreApplication::applicationDirPath() + "/cached_images/" + msg);
     }
     htmlToShow += "<br>";
     ui->chatBrowser->setHtml(htmlToShow);

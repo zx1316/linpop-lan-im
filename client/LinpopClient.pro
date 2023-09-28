@@ -1,4 +1,4 @@
-QT += core gui widgets network multimedia multimediawidgets
+QT += core gui widgets network multimedia multimediawidgets websockets
 RC_FILE += res.rc
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

@@ -41,7 +41,11 @@ void ClientSendThread::onStateChanged() {
         file.close();
     } else if (socket->state() == QAbstractSocket::ConnectedState) {
         file.open(QIODevice::ReadOnly);
-        size = file.size();
+        if (!file.isOpen()) {
+            size = -1;
+        } else {
+            size = file.size();
+        }
         socket->write(reinterpret_cast<char *>(&size), 8);
     }
 }

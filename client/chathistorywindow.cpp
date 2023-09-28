@@ -9,7 +9,7 @@ ChatHistoryWindow::ChatHistoryWindow(MiHoYoLauncher *launcher, QWidget *parent) 
     ui->startDate->setDate(QDate::currentDate().addMonths(-1));
     ui->chatHistoryBrowser->setOpenLinks(false);
     connect(ui->chatHistoryBrowser, &QTextBrowser::anchorClicked, this, &ChatHistoryWindow::onAnchorClicked);
-    connect(ui->queryButton,SIGNAL(clicked()),this,SLOT(onQueryButtonClicked()));
+    connect(ui->queryButton, SIGNAL(clicked()), this, SLOT(onQueryButtonClicked()));
 }
 
 ChatHistoryWindow::~ChatHistoryWindow() {

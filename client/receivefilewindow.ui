@@ -43,7 +43,7 @@
    <property name="font">
     <font>
      <family>黑体</family>
-     <pointsize>20</pointsize>
+     <pointsize>18</pointsize>
      <bold>false</bold>
      <kerning>true</kerning>
     </font>

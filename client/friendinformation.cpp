@@ -12,8 +12,8 @@ FriendInformation::FriendInformation(const User& u, QWidget *parent) : QWidget(p
     //根据好友信息设置相应标签内容
     name = u.name;
     ui->username_label->setText(name[0] == '_' ? name.right(name.length() - 1) : name);
-    ui->ip_label->setText(name[0] == '_' ? "聊天室" : u.ip);
-    ui->picture_label->setIcon(QIcon(QCoreApplication::applicationDirPath() + "/images/" + u.img));
+    ui->ip_label->setText(name[0] == '_' ? "聊天室" : (u.ip == "" ? "离线" : u.ip));
+    ui->picture_label->setIcon(QIcon(QCoreApplication::applicationDirPath() + "/cached_images/" + u.img));
     this->setStyleSheet((name[0] == '_' || u.ip != "") ? "#widget{border:1px solid black;background:Cyan}" : "#widget{border:1px solid black;background:gray}");
 
     //将信号和槽函数连接
@@ -22,7 +22,6 @@ FriendInformation::FriendInformation(const User& u, QWidget *parent) : QWidget(p
     connect(ui->picture_label, &DoubleClickedLabel::doubleClickedSignal, this, &FriendInformation::onDoubleClickedSignal);
     connect(ui->undefinedButton, SIGNAL(clicked()), this, SLOT(onUndefinedButtonClicked()));
 }
-
 
 FriendInformation::~FriendInformation() {
     delete ui;

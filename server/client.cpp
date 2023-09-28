@@ -1,14 +1,13 @@
 #include "client.h"
 #include "clientrecvthread.h"
 #include "clientsendthread.h"
-#include <QTcpServer>
 #include <QCryptographicHash>
 #include <QDateTime>
 
-Client::Client(QTcpSocket *socket, QHash<QString, Client *> &clientMap, QMultiHash<QString, QJsonObject> &imgJsonMap, Database &db, QMutex &clientMapLock) : clientMapLock(clientMapLock), clientMap(clientMap), imgJsonMap(imgJsonMap), db(db), socket(socket) {
+Client::Client(QWebSocket *socket, QHash<QString, Client *> &clientMap, QMultiHash<QString, QJsonObject> &imgJsonMap, Database &db, QMutex &clientMapLock) : clientMapLock(clientMapLock), clientMap(clientMap), imgJsonMap(imgJsonMap), db(db), socket(socket) {
     QTimer::singleShot(5000, this, [=] {
         if (name == "") {
-            qDebug() << "auto disconnect client" << this;
+            qDebug() << "auto disconnect" << this;
             emit close(socket);
         }
     });
@@ -16,63 +15,50 @@ Client::Client(QTcpSocket *socket, QHash<QString, Client *> &clientMap, QMultiHa
 
 Client::~Client() {
     socket->deleteLater();
-    delete[] recvArr;
-    qDebug() << "destructing client" << this;
 }
 
 void Client::send(const QJsonObject &object) {
+    qDebug() << "send" << object["cmd"].toString() << this << "user" << name;
     QJsonDocument document(object);
     auto array = document.toJson(QJsonDocument::Compact);
     qint32 len = array.length();
     if (len > 4096) {
         array = qCompress(array);
-        len = -array.length();
+        emit sendBinaryMessage(array, socket);
+    } else {
+        emit sendTextMessage(array, socket);
     }
-    array.insert(0, reinterpret_cast<char *>(&len), 4);
-    emit writeData(array, socket);
 }
 
 void Client::handleJson(const QJsonObject &jsonObject) {
     auto cmd = jsonObject["cmd"].toString();
-    if (name == "" && cmd != "register" && cmd != "login" && cmd != "img") {
+    qDebug() << "handle" << cmd << this << "user" << name;
+    if (name == "" && cmd != "register" && cmd != "login") {
         return;
     }
-    qDebug() << "handle" << cmd << "client" << this << "user" << name;
     QJsonObject objectReturn, objectToOthers;
     if (cmd == "register") {
         auto name1 = jsonObject["name"].toString();
         auto pwd = jsonObject["pwd"].toString();
-        auto imgName = jsonObject["img"].toString();
-        int result = 2;
-        if (!(name1.isNull() || pwd.isNull() || imgName.isNull())) {
-            bool flag = false;
-            if (name1[0] != '_') {
-                result = db.insertUser(name1, pwd, imgName);
-                if (result == 0) {
-                    objectReturn["cmd"] = cmd;
-                    objectReturn["status"] = "success";
-                } else if (result == 1) {
-                    if (imgJsonMap.contains(imgName)) {
-                        flag = true;
-                    }
-                    imgJsonMap.insert(imgName, jsonObject);
-                    objectReturn["cmd"] = "request_img";
-                    objectReturn["img"] = imgName;
-                } else {
-                    objectReturn["cmd"] = cmd;
-                    objectReturn["status"] = "fail";
-                }
+        auto base64 = jsonObject["base64"].toString();
+        if (name1.isNull() || pwd.isNull() || base64.isNull()) {
+            return;
+        }
+        objectReturn["cmd"] = "register";
+        if (name1[0] != '_') {
+            auto array = QByteArray::fromBase64(base64.toLatin1());
+            auto imgName = QString(QCryptographicHash::hash(array, QCryptographicHash::Md5).toHex()) + ".png";
+            db.insertImg(imgName, array);
+            if (db.insertUser(name1, pwd, imgName) == 0) {
+                objectReturn["status"] = "success";
             } else {
-                objectReturn["cmd"] = cmd;
                 objectReturn["status"] = "fail";
             }
-            if (!flag) {
-                send(objectReturn);
-            }
+        } else {
+            objectReturn["status"] = "fail";
         }
-        if (result != 1) {
-            emit close(socket);
-        }
+        send(objectReturn);
+        emit close(socket);
     } else if (cmd == "login") {
         objectReturn["cmd"] = cmd;
         auto name1 = jsonObject["name"].toString();
@@ -149,7 +135,6 @@ void Client::handleJson(const QJsonObject &jsonObject) {
                 return;
             }
         }
-        bool flag = false;
         if (groupName[0] == '_') {
             auto result = db.insertUser(groupName, "", imgName);
             if (result == 0) {
@@ -172,20 +157,21 @@ void Client::handleJson(const QJsonObject &jsonObject) {
                 dir.mkdir(groupName);
             } else if (result == 1) {
                 if (imgJsonMap.contains(imgName)) {
-                    flag = true;
+                    imgJsonMap.insert(imgName, jsonObject);
+                } else {
+                    imgJsonMap.insert(imgName, jsonObject);
+                    objectReturn["cmd"] = "request_img";
+                    objectReturn["img"] = imgName;
+                    send(objectReturn);
                 }
-                imgJsonMap.insert(imgName, jsonObject);
-                objectReturn["cmd"] = "request_img";
-                objectReturn["img"] = imgName;
             } else {
                 objectReturn["cmd"] = cmd;
                 objectReturn["status"] = "fail";
+                send(objectReturn);
             }
         } else {
             objectReturn["cmd"] = cmd;
             objectReturn["status"] = "fail";
-        }
-        if (!flag) {
             send(objectReturn);
         }
     } else if (cmd == "add") {
@@ -347,7 +333,7 @@ void Client::handleJson(const QJsonObject &jsonObject) {
         bool ok;
         auto sender = jsonObject["sender"].toString();
         auto portStr = jsonObject["port"].toString();
-        portStr.toUShort(&ok);
+        portStr.toInt(&ok);
         if (sender.isNull() || !ok) {
             return;
         }
@@ -440,7 +426,7 @@ void Client::handleJson(const QJsonObject &jsonObject) {
         auto timer = new QTimer;
         connect(thread, &ClientSendThread::success, thread, &ClientSendThread::quit);
         connect(thread, &ClientSendThread::fail, thread, &ClientSendThread::quit);
-        connect(thread, SIGNAL(progress(int8)), timer, SLOT(start()));
+        connect(thread, SIGNAL(progress(qint8)), timer, SLOT(start()));
         connect(timer, &QTimer::timeout, thread, &ClientSendThread::quit);
         connect(thread, &ClientSendThread::finished, thread, &ClientSendThread::deleteLater);
         connect(thread, &ClientSendThread::finished, timer, &QTimer::deleteLater);
@@ -457,43 +443,18 @@ void Client::handleJson(const QJsonObject &jsonObject) {
     }
 }
 
-void Client::onReadyRead() {
-    qint64 len;
-    while ((len = socket->read(recvArr + recvLen, exceptLen - recvLen)) > 0) {
-        recvLen += len;
-        if (recvLen == exceptLen) {
-            if (isReadyReadJson) {
-                exceptLen = 4;
-                // 开始处理
-                QByteArray array;
-                if (isCompressed) {
-                    array = qUncompress(reinterpret_cast<unsigned char *>(recvArr), recvLen);
-                } else {
-                    array = QByteArray(recvArr, recvLen);
-                }
-                QJsonDocument document = QJsonDocument::fromJson(array);
-                handleJson(document.object());
-            } else {
-                exceptLen = *reinterpret_cast<int *>(recvArr);
-                if (exceptLen < 0) {
-                    isCompressed = true;
-                    exceptLen = -exceptLen;
-                } else {
-                    isCompressed = false;
-                }
-                if (exceptLen > 2 * 1024 * 1024) {
-                    emit close(socket);
-                    return;
-                }
-            }
-            isReadyReadJson = !isReadyReadJson;
-            recvLen = 0;
-        }
-    }
+void Client::onBinaryMessageReceived(QByteArray array) {
+    auto document = QJsonDocument::fromJson(qUncompress(array));
+    handleJson(document.object());
+}
+
+void Client::onTextMessageReceived(QString str) {
+    auto document = QJsonDocument::fromJson(str.toUtf8());
+    handleJson(document.object());
 }
 
 void Client::onDisconnected() {
-    qDebug() << "connection closed. client" << this << "name" << name;
+    qDebug() << "connection closed" << this << "name" << name;
     clientMapLock.lock();
     if (clientMap.contains(name)) {
         db.updateOfflineTime(name, QDateTime::currentMSecsSinceEpoch());

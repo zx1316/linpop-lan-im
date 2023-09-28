@@ -9,7 +9,6 @@ TransferFileWindow::TransferFileWindow(MiHoYoLauncher *launcher, QWidget *parent
     ui->transfer_file_button->setEnabled(false);
     ui->state_label->setText("请打开文件");
     ui->progressBar->setValue(0);
-    ui->progressBar->setMaximum(100);
     connect(ui->open_file_button,SIGNAL(clicked()),this,SLOT(onOpenFileButtonClicked()));
     connect(ui->transfer_file_button,SIGNAL(clicked()),this,SLOT(onTransferFileButtonClicked()));
     connect(ui->quit_button,SIGNAL(clicked()),this,SLOT(close()));
@@ -46,7 +45,6 @@ void TransferFileWindow::onTransferFileButtonClicked() {
     emit transferFileRequestSignal(info.fileName(), info.size());
     ui->transfer_file_button->setEnabled(false);
     ui->open_file_button->setEnabled(false);
-    ui->progressBar->setValue(0);
 }
 
 void TransferFileWindow::onAcceptTransferFileSignal(const QString &ip, int port) {
@@ -68,7 +66,7 @@ void TransferFileWindow::onAcceptTransferFileSignal(const QString &ip, int port)
 }
 
 void TransferFileWindow::onRejectTransferFileSignal() {
-    QMessageBox::information(this,"Fail:","对方拒绝了你的传输申请");
+    QMessageBox::critical(this, "Fail:", "对方拒绝了你的传输申请");
     ui->state_label->setText("请打开文件");
     ui->open_file_button->setEnabled(true);
     ui->transfer_file_button->setEnabled(false);
@@ -77,16 +75,17 @@ void TransferFileWindow::onRejectTransferFileSignal() {
 void TransferFileWindow::onFinish() {
     thread->quit();
     thread = nullptr;
-    QMessageBox::information(this,"Success:","发送完毕");
+    QMessageBox::information(this, "Success:", "发送完毕");
     ui->state_label->setText("请打开文件");
     ui->open_file_button->setEnabled(true);
     ui->transfer_file_button->setEnabled(false);
+    ui->progressBar->setValue(0);
 }
 
 void TransferFileWindow::onFail() {
     thread->quit();
     thread = nullptr;
-    QMessageBox::information(this,"Fail:","发送失败");
+    QMessageBox::critical(this, "Fail:", "发送失败");
     ui->state_label->setText("请打开文件");
     ui->open_file_button->setEnabled(true);
     ui->transfer_file_button->setEnabled(false);

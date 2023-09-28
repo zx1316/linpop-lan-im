@@ -19,8 +19,9 @@ private:
     Ui::ConfigWindow *ui;
     Network *network;
 
-public slots:
+private slots:
     void onConfirmClicked();
+    void onClearCacheClicked();
 };
 
 #endif // CONFIGWINDOW_H

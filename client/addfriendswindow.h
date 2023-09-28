@@ -9,8 +9,7 @@ namespace Ui {
 class AddFriendsWindow;
 }
 
-class AddFriendsWindow : public QWidget
-{
+class AddFriendsWindow : public QWidget {
     Q_OBJECT
 
 public:
@@ -22,6 +21,7 @@ public:
 
 private slots:
     void onSearchPushButtonClicked();
+    void onSecretButtonClicked();
 
 private:
     Ui::AddFriendsWindow *ui;
