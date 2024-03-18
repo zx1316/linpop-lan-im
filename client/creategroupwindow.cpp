@@ -4,7 +4,7 @@
 #include <QFileDialog>
 #include <QBuffer>
 
-CreateGroupWindow::CreateGroupWindow(const QList<QString> &friendList, const QString &selfName, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::CreateGroupWindow), launcher(launcher), selfName(selfName) {
+CreateGroupWindow::CreateGroupWindow(const QList<QString>& friendList, const QString& selfName, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::CreateGroupWindow), launcher(launcher), selfName(selfName) {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose, true);
     ui->unselectedList->addItems(friendList);
@@ -46,7 +46,7 @@ void CreateGroupWindow::onCreateGroupButtonClicked() {
     launcher->gachaLaunch();
     QString group_name = ui->group_name->text();
     int spaceCnt = 0;
-    for (auto ch : group_name) {
+    for (auto& ch : group_name) {
         if (ch.isSpace()) {
             spaceCnt++;
         }

@@ -47,7 +47,7 @@ void TransferFileWindow::onTransferFileButtonClicked() {
     ui->open_file_button->setEnabled(false);
 }
 
-void TransferFileWindow::onAcceptTransferFileSignal(const QString &ip, int port) {
+void TransferFileWindow::onAcceptTransferFileSignal(const QString& ip, int port) {
     ui->state_label->setText("正在传输文件");
     thread = new ClientSendThread(path, ip, port);
     auto timer = new QTimer;

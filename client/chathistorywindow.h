@@ -27,18 +27,18 @@ class ChatHistoryWindow : public QWidget {
 public:
     explicit ChatHistoryWindow(MiHoYoLauncher *launcher, QWidget *parent = nullptr);
     ~ChatHistoryWindow();
-    void refreshRecords(const QString &html);
+    void refreshRecords(const QString& html);
 
 private slots:
     void onQueryButtonClicked();
-    void onAnchorClicked(QUrl url);
+    void onAnchorClicked(const QUrl& url);
 
 private:
     Ui::ChatHistoryWindow *ui;
     MiHoYoLauncher *launcher;
 
 signals:
-    void chatHistoryRequestSignal(QDate, QDate);
+    void chatHistoryRequestSignal(const QDate&, const QDate&);
     void windowClosed();
 
 };

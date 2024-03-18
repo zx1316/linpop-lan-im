@@ -21,7 +21,7 @@ class ClientRecvThread : public QThread {
     Q_OBJECT
 
 public:
-    explicit ClientRecvThread(const QString &path, const QString &serverIp, quint16 port, QObject *parent = nullptr);
+    explicit ClientRecvThread(const QString& path, const QString& serverIp, quint16 port, QObject *parent = nullptr);
     ~ClientRecvThread();
     void run() override;
 

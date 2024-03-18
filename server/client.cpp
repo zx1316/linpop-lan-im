@@ -4,7 +4,7 @@
 #include <QCryptographicHash>
 #include <QDateTime>
 
-Client::Client(QWebSocket *socket, QHash<QString, Client *> &clientMap, QMultiHash<QString, QJsonObject> &imgJsonMap, Database &db, QMutex &clientMapLock) : clientMapLock(clientMapLock), clientMap(clientMap), imgJsonMap(imgJsonMap), db(db), socket(socket) {
+Client::Client(QWebSocket *socket, QHash<QString, Client *>& clientMap, QMultiHash<QString, QJsonObject>& imgJsonMap, Database& db, QMutex& clientMapLock) : clientMapLock(clientMapLock), clientMap(clientMap), imgJsonMap(imgJsonMap), db(db), socket(socket) {
     QTimer::singleShot(5000, this, [=] {
         if (name == "") {
             qDebug() << "auto disconnect" << this;
@@ -88,7 +88,7 @@ void Client::handleJson(const QJsonObject &jsonObject) {
                 objectReturn["img"] = user.imgName;
                 QJsonArray array;
                 auto list1 = db.selectFriends(name);
-                for (auto item : list1) {
+                for (auto& item : list1) {
                     QJsonObject obj;
                     obj["name"] = item.name;
                     obj["img"] = item.imgName;
@@ -101,7 +101,7 @@ void Client::handleJson(const QJsonObject &jsonObject) {
                 objectToOthers["cmd"] = "online";
                 objectToOthers["name"] = name;
                 objectToOthers["ip"] = socket->peerAddress().toString();
-                for (auto item : list1) {
+                for (auto& item : list1) {
                     if (clientMap.contains(item.name)) {
                         clientMap[item.name]->send(objectToOthers);
                     }
@@ -118,7 +118,7 @@ void Client::handleJson(const QJsonObject &jsonObject) {
         objectReturn["group_name"] = groupName;
         QJsonArray array;
         auto list = db.selectFriends(groupName);
-        for (auto item : list) {
+        for (auto& item : list) {
             array.append(item.name);
         }
         objectReturn["members"] = array;
@@ -130,7 +130,7 @@ void Client::handleJson(const QJsonObject &jsonObject) {
             return;
         }
         auto array = jsonObject["init"].toArray();
-        for (auto item : array) {
+        for (const auto& item : qAsConst(array)) {
             if (!item.isString()) {
                 return;
             }
@@ -146,7 +146,7 @@ void Client::handleJson(const QJsonObject &jsonObject) {
                 objectToOthers["ip"] = "";
                 objectToOthers["img"] = imgName;
                 clientMapLock.lock();
-                for (auto item : array) {
+                for (const auto& item : qAsConst(array)) {
                     QString name1 = item.toString();
                     db.insertFriend(name1, groupName);
                     if (clientMap.contains(name1)) {
@@ -243,7 +243,7 @@ void Client::handleJson(const QJsonObject &jsonObject) {
             if (receiver[0] == '_') {
                 objectToOthers["inner_name"] = receiver;
                 auto list = db.selectFriends(receiver);
-                for (auto item : list) {
+                for (auto& item : list) {
                     if (name != item.name && clientMap.contains(item.name)) {
                         clientMap[item.name]->send(objectToOthers);
                     }
@@ -279,7 +279,7 @@ void Client::handleJson(const QJsonObject &jsonObject) {
         auto array = QByteArray::fromBase64(base64.toLatin1());
         if (QCryptographicHash::hash(array, QCryptographicHash::Md5).toHex() == imgName.left(imgName.indexOf('.')) && imgJsonMap.contains(imgName)) {
             db.insertImg(imgName, array);
-            for (auto item : imgJsonMap.values(imgName)) {
+            for (auto& item : imgJsonMap.values(imgName)) {
                 handleJson(item);
             }
             imgJsonMap.remove(imgName);
@@ -297,7 +297,7 @@ void Client::handleJson(const QJsonObject &jsonObject) {
         objectReturn["cmd"] = cmd;
         objectReturn["name"] = name1;
         QJsonArray array;
-        for (auto item : list) {
+        for (auto& item : list) {
             QJsonObject obj;
             obj["sender"] = item.sender;
             obj["msg"] = item.msg;
@@ -357,7 +357,7 @@ void Client::handleJson(const QJsonObject &jsonObject) {
             objectToOthers["img"] = imgName;
             auto list = db.selectFriends(name);
             clientMapLock.lock();
-            for (auto item : list) {
+            for (auto& item : list) {
                 if (clientMap.contains(item.name)) {
                     clientMap[item.name]->send(objectToOthers);
                 }
@@ -382,7 +382,7 @@ void Client::handleJson(const QJsonObject &jsonObject) {
         QJsonArray array;
         objectReturn["cmd"] = cmd;
         objectReturn["group_name"] = groupName;
-        for (auto item : list) {
+        for (auto& item : list) {
             QJsonObject obj;
             obj["file_name"] = item.fileName;
             obj["uploader"] = item.uploader;
@@ -444,12 +444,12 @@ void Client::handleJson(const QJsonObject &jsonObject) {
     }
 }
 
-void Client::onBinaryMessageReceived(QByteArray array) {
+void Client::onBinaryMessageReceived(const QByteArray& array) {
     auto document = QJsonDocument::fromJson(qUncompress(array));
     handleJson(document.object());
 }
 
-void Client::onTextMessageReceived(QString str) {
+void Client::onTextMessageReceived(const QString& str) {
     auto document = QJsonDocument::fromJson(str.toUtf8());
     handleJson(document.object());
 }
@@ -463,7 +463,7 @@ void Client::onDisconnected() {
         QJsonObject objectToOthers;
         objectToOthers["cmd"] = "offline";
         objectToOthers["name"] = name;
-        for (auto item : list) {
+        for (auto& item : list) {
             if (clientMap.contains(item.name)) {
                 clientMap[item.name]->send(objectToOthers);
             }

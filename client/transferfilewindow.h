@@ -30,7 +30,7 @@ class TransferFileWindow : public QWidget {
 public:
     explicit TransferFileWindow(MiHoYoLauncher *, QWidget *parent = nullptr);
     ~TransferFileWindow();
-    void onAcceptTransferFileSignal(const QString &ip, int port);
+    void onAcceptTransferFileSignal(const QString& ip, int port);
     void onRejectTransferFileSignal();
 
 private:
@@ -49,7 +49,7 @@ private slots:
 
 signals:
     void windowClosed();
-    void transferFileRequestSignal(QString, qint64);
+    void transferFileRequestSignal(const QString&, qint64);
 };
 
 #endif // TRANSFERFILEWINDOW_H

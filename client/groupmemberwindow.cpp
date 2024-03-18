@@ -13,7 +13,7 @@ GroupMemberWindow::~GroupMemberWindow() {
     delete ui;
 }
 
-void GroupMemberWindow::onGroupMemberSignal(const QList<QString> &list) {
+void GroupMemberWindow::onGroupMemberSignal(const QList<QString>& list) {
     auto listWidget = ui->listWidget;
     listWidget->clear();
     listWidget->addItems(list);

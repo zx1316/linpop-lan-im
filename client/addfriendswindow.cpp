@@ -1,7 +1,7 @@
 #include "addfriendswindow.h"
 #include "ui_addfriendswindow.h"
 
-AddFriendsWindow::AddFriendsWindow(const QString &selfName, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::AddFriendsWindow), launcher(launcher), selfName(selfName) {
+AddFriendsWindow::AddFriendsWindow(const QString& selfName, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::AddFriendsWindow), launcher(launcher), selfName(selfName) {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose, true);
     ui->name_search_line_edit->setPlaceholderText("请输入要添加的用户/聊天室名");

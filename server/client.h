@@ -7,27 +7,27 @@ class Client : public QObject {
     Q_OBJECT
 
 private:
-    QMutex &clientMapLock;
-    QHash<QString, Client *> &clientMap;
-    QMultiHash<QString, QJsonObject> &imgJsonMap;
-    Database &db;
+    QMutex& clientMapLock;
+    QHash<QString, Client *>& clientMap;
+    QMultiHash<QString, QJsonObject>& imgJsonMap;
+    Database& db;
     QWebSocket *socket;
     QString name = "";
-    void handleJson(const QJsonObject &jsonObject);
+    void handleJson(const QJsonObject& jsonObject);
 
 public:
-    Client(QWebSocket *socket, QHash<QString, Client *> &clientMap, QMultiHash<QString, QJsonObject> &imgJsonMap, Database &db, QMutex &clientMapLock);
+    Client(QWebSocket *socket, QHash<QString, Client *> &clientMap, QMultiHash<QString, QJsonObject>& imgJsonMap, Database& db, QMutex& clientMapLock);
     ~Client();
-    void send(const QJsonObject &);
+    void send(const QJsonObject&);
 
 public slots:
-    void onBinaryMessageReceived(QByteArray array);
-    void onTextMessageReceived(QString str);
+    void onBinaryMessageReceived(const QByteArray& array);
+    void onTextMessageReceived(const QString& str);
     void onDisconnected();
 
 signals:
-    void sendBinaryMessage(QByteArray array, QWebSocket *socket);
-    void sendTextMessage(QString str, QWebSocket *socket);
+    void sendBinaryMessage(const QByteArray& array, QWebSocket *socket);
+    void sendTextMessage(const QString& str, QWebSocket *socket);
     void close(QWebSocket *socket);
     void clear(Client *client);
 };

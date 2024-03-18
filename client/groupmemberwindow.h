@@ -13,7 +13,7 @@ class GroupMemberWindow : public QWidget {
 public:
     explicit GroupMemberWindow(QWidget *parent = nullptr);
     ~GroupMemberWindow();
-    void onGroupMemberSignal(const QList<QString> &list);
+    void onGroupMemberSignal(const QList<QString>& list);
 
 private:
     Ui::GroupMemberWindow *ui;

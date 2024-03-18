@@ -3,7 +3,7 @@
 #include <QMessageBox>
 #include <QTimer>
 
-ReceiveFileWindow::ReceiveFileWindow(const QString &path, const QString &name, const QString &ip, QWidget *parent) : QWidget(parent), ui(new Ui::ReceiveFileWindow) {
+ReceiveFileWindow::ReceiveFileWindow(const QString& path, const QString& name, const QString& ip, QWidget *parent) : QWidget(parent), ui(new Ui::ReceiveFileWindow) {
     ui->setupUi(this);
     //初始化进度条
     ui->progressBar->setValue(0);

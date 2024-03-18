@@ -21,8 +21,8 @@ public:
 
 public slots:
     void onNewConnection();
-    void toSendTextMessage(QString str, QWebSocket *socket);
-    void toSendBinaryMessage(QByteArray array, QWebSocket *socket);
+    void toSendTextMessage(const QString& str, QWebSocket *socket);
+    void toSendBinaryMessage(const QByteArray& array, QWebSocket *socket);
     void toClose(QWebSocket *socket);
     void onClear(Client *client);
 };

@@ -10,8 +10,8 @@ public:
 
 private:
     QTimer m_cTimer;
-    void mousePressEvent(QMouseEvent *e);
-    void mouseDoubleClickEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *e) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
 
 private slots:
     void slotTimerTimeOut();

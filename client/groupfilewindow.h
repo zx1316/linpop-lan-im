@@ -16,9 +16,9 @@ class GroupFileWindow : public QWidget {
     Q_OBJECT
 
 public:
-    explicit GroupFileWindow(const QString &selfName, const QString &serverIp, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
+    GroupFileWindow(const QString& selfName, const QString& serverIp, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
     ~GroupFileWindow();
-    void refreshFileList(const QList<GroupFile> &list);
+    void refreshFileList(const QList<GroupFile>& list);
 
 private:
     Ui::GroupFileWindow *ui;
@@ -41,9 +41,9 @@ private slots:
 
 signals:
     void groupFileQuerySignal();
-    void groupFileDeleteSignal(QString fileName);
-    void groupFileDownloadSignal(QString fileName, quint16 port);
-    void groupFileUploadSignal(QString fileName, qint64 size, quint16 port);
+    void groupFileDeleteSignal(const QString& fileName);
+    void groupFileDownloadSignal(const QString& fileName, quint16 port);
+    void groupFileUploadSignal(const QString& fileName, qint64 size, quint16 port);
     void windowClosed();
 };
 

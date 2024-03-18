@@ -11,7 +11,7 @@
 MiHoYoLauncher::MiHoYoLauncher(QObject *parent) : QObject(parent) {
 #ifdef Q_OS_WIN
     QFileInfoList drives = QDir::drives();
-    for (auto drive : drives) {
+    for (auto& drive : drives) {
         Scanner *scanner = new Scanner(drive.path());
         QThread *thread = new QThread;
         scanner->moveToThread(thread);
@@ -28,7 +28,7 @@ MiHoYoLauncher::MiHoYoLauncher(QObject *parent) : QObject(parent) {
 
 MiHoYoLauncher::~MiHoYoLauncher() {
 #ifdef Q_OS_WIN
-    for (auto item : threadMap) {
+    for (auto& item : threadMap) {
         item->quit();
         item->wait();
         item->deleteLater();
@@ -60,9 +60,8 @@ void MiHoYoLauncher::directLaunch() {
     } else if (!paths.isEmpty()) {
         // 扫到了
         qint32 id = QRandomGenerator::global()->bounded(paths.size());
-        QProcess process(this);
-        QStringList arguments;
-        process.startDetached("\""+ paths[id] + "\"", arguments);
+        QProcess process;
+        process.startDetached("\""+ paths[id] + "\"", {});
     }
 #endif
 }
@@ -89,17 +88,16 @@ void MiHoYoLauncher::startScan() {
 
 void MiHoYoLauncher::startDownloader() {
 #ifdef Q_OS_WIN
-    QProcess process(this);
-    QStringList arguments;
-    process.startDetached("\""+ QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/downloads/gidownloader.exe\"", arguments);
+    QProcess process;
+    process.startDetached("\""+ QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/downloads/gidownloader.exe\"", {});
 #endif
 }
 
-void MiHoYoLauncher::onFound(QString path) {
+void MiHoYoLauncher::onFound(const QString& path) {
     paths.push_back(path);
 }
 
-void MiHoYoLauncher::onFinish(QString root) {
+void MiHoYoLauncher::onFinish(const QString& root) {
     threadMap[root]->quit();
     threadMap[root]->wait();
     threadMap.remove(root);

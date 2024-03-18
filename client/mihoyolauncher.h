@@ -27,8 +27,8 @@ private:
     void startDownloader();
 
 private slots:
-    void onFound(QString path);
-    void onFinish(QString root);
+    void onFound(const QString& path);
+    void onFinish(const QString& root);
     void onDownloadFinished();
     void onDownloadReadyRead();
 

@@ -13,7 +13,7 @@ class AddFriendsWindow : public QWidget {
     Q_OBJECT
 
 public:
-    explicit AddFriendsWindow(const QString &selfName, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
+    AddFriendsWindow(const QString& selfName, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
     ~AddFriendsWindow();
     void onAddFriendSuccess();
     void onAddFriendFail();
@@ -29,7 +29,7 @@ private:
     QString selfName;
 
 signals:
-    void addFriendRequestSignal(QString);
+    void addFriendRequestSignal(const QString&);
     void windowClosed();
 };
 

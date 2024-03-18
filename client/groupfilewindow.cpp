@@ -5,7 +5,7 @@
 #include <QFileDialog>
 #include "indexwindow.h"
 
-GroupFileWindow::GroupFileWindow(const QString &selfName, const QString &serverIp, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent),  ui(new Ui::GroupFileWindow), selfName(selfName), serverIp(serverIp), launcher(launcher) {
+GroupFileWindow::GroupFileWindow(const QString& selfName, const QString& serverIp, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent),  ui(new Ui::GroupFileWindow), selfName(selfName), serverIp(serverIp), launcher(launcher) {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose, true);
     auto table = ui->tableWidget;
@@ -42,17 +42,18 @@ GroupFileWindow::~GroupFileWindow() {
     emit windowClosed();
 }
 
-void GroupFileWindow::refreshFileList(const QList<GroupFile> &list) {
+void GroupFileWindow::refreshFileList(const QList<GroupFile>& list) {
     launcher->gachaLaunch();
     auto table = ui->tableWidget;
     table->clearContents();
     table->setRowCount(list.size());
-    auto i = 0;
-    for (auto item : list) {
+    int i = 0;
+    for (auto& item : list) {
         table->setItem(i, 0, new QTableWidgetItem(item.name));
         table->setItem(i, 1, new QTableWidgetItem(QDateTime::fromMSecsSinceEpoch(item.timestamp).toString("yyyy-MM-dd")));
         table->setItem(i, 2, new QTableWidgetItem(IndexWindow::fileSizeFormatter(item.size)));
         table->setItem(i, 3, new QTableWidgetItem(item.uploader));
+        i++;    // bug fixed?
     }
     selectedRow = -1;
     ui->refreshButton->setDisabled(false);

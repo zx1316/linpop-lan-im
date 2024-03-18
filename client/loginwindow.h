@@ -36,7 +36,7 @@ class LoginWindow : public QWidget {
     Q_OBJECT
 
 public:
-    LoginWindow(Network *network, MiHoYoLauncher *launcher, const QString &name, QWidget *parent = nullptr);
+    LoginWindow(Network *network, MiHoYoLauncher *launcher, const QString& name, QWidget *parent = nullptr);
     ~LoginWindow();
 
 private slots:
@@ -49,7 +49,7 @@ private slots:
 
     void onloginAlready();
     void onloginUnauthorized();
-    void onloginSuccess(QString imgName, QList<User> list);
+    void onloginSuccess(const QString& imgName, const QList<User>& list);
 
 public slots:
     void onNetworkConnected();
@@ -62,6 +62,6 @@ private:
     bool connectFlag = false;
 
 signals:
-    void loginRequest(QString, QString);
+    void loginRequest(const QString&, const QString&);
 };
 #endif // LOGINWINDOW_H

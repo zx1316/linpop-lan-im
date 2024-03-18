@@ -25,7 +25,7 @@ class IndexWindow : public QWidget {
     Q_OBJECT
 
 public:
-    explicit IndexWindow(const QString &username, const QString &img, const QList<User> &friendList, Network *network, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
+    IndexWindow(const QString& username, const QString& img, const QList<User>& friendList, Network *network, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
     ~IndexWindow();
     static QString fileSizeFormatter(qint64 size);
 
@@ -40,9 +40,9 @@ private:
     CreateGroupWindow *_create_group_window = nullptr;
     Network *network;
     MiHoYoLauncher *launcher;
-    void deleteFriendFromUI(const QString &name);
-    void insertFriendToUI(const User &user);
-    void putFriendToFront(const QString &name);
+    void deleteFriendFromUI(const QString& name);
+    void insertFriendToUI(const User& user);
+    void putFriendToFront(const QString& name);
 
 public slots:
     // button slots
@@ -53,46 +53,46 @@ public slots:
     void onDeleteFriendSignal(FriendInformation* fi);
 
     // network feedback
-    void onGroupMemberListFeedbackSignal(QString groupName, QList<QString> list);
+    void onGroupMemberListFeedbackSignal(const QString& groupName, const QList<QString>& list);
     void onCreateGroupSuccessFeedbackSignal();
     void onCreateGroupFailFeedbackSignal();
-    void onAddFriendSuccessFeedbackSignal(QString name, QString ip, QString imgName);
+    void onAddFriendSuccessFeedbackSignal(const QString& name, const QString& ip, const QString& imgName);
     void onAddFriendFailFeedbackSignal();
-    void onBeAddedFeedbackSignal(QString name, QString ip, QString imgName);
-    void onBeDeletedFeedbackSignal(QString name);
-    void onFriendOnlineFeedbackSignal(QString name, QString ip);
-    void onFriendOfflineFeedbackSignal(QString name);
-    void onFriendImageChangedFeedbackSignal(QString name, QString imgName);
-    void onNewMsgFeedbackSignal(QString innerName, QString sender, QString msg, QString type);
-    void onRequestFileFeedbackSignal(QString sender, QString fileName, qint64 size);
-    void onAcceptFileFeedbackSignal(QString receiver, quint16 port);
-    void onRejectFileFeedbackSignal(QString receiver);
-    void onHistoryFeedbackSignal(QString name, QList<ChatRecord> list);
-    void onFileListFeedbackSignal(QString groupName, QList<GroupFile> list);
-    void onSendMsgSuccessSignal(QString name, QString msg, QString type);
+    void onBeAddedFeedbackSignal(const QString& name, const QString& ip, const QString& imgName);
+    void onBeDeletedFeedbackSignal(const QString& name);
+    void onFriendOnlineFeedbackSignal(const QString& name, const QString& ip);
+    void onFriendOfflineFeedbackSignal(const QString& name);
+    void onFriendImageChangedFeedbackSignal(const QString& name, const QString& imgName);
+    void onNewMsgFeedbackSignal(const QString& innerName, const QString& sender, const QString& msg, const QString& type);
+    void onRequestFileFeedbackSignal(const QString& sender, const QString& fileName, qint64 size);
+    void onAcceptFileFeedbackSignal(const QString& receiver, quint16 port);
+    void onRejectFileFeedbackSignal(const QString& receiver);
+    void onHistoryFeedbackSignal(const QString& name, const QList<ChatRecord>& list);
+    void onFileListFeedbackSignal(const QString& groupName, const QList<GroupFile>& list);
+    void onSendMsgSuccessSignal(const QString& name, const QString& msg, const QString& type);
     void onDisconnectedSignal();
 
     // chat window
-    void onAddFriendRequestSignal(QString);
+    void onAddFriendRequestSignal(const QString&);
     void onAddFriendWindowClosed();
 
     // create group window
-    void onCreateGroupRequestSignal(QString groupName, QString imgName, QList<QString> list);
+    void onCreateGroupRequestSignal(const QString& groupName, const QString& imgName, const QList<QString>& list);
     void onCreateGroupWindowClosed();
 
     // chat window
-    void onChatWindowClosed(QString name);
-    void onSendMessageRequestSignal(QString name, QString msg, QString type);
-    void onTransferFileRequestSignal(QString receiver, QString fileName, qint64 size);
-    void onChatHistoryRequestSignal(QString name, QDate start, QDate end);
-    void onGroupMemberRequestSignal(QString groupName);
-    void onGroupFileQuerySignal(QString groupName);
-    void onGroupFileDeleteSignal(QString groupName, QString fileName);
-    void onGroupFileDownloadSignal(QString groupName, QString fileName, quint16 port);
-    void onGroupFileUploadSignal(QString groupName, QString fileName, qint64 size, quint16 port);
+    void onChatWindowClosed(const QString& name);
+    void onSendMessageRequestSignal(const QString& name, const QString& msg, const QString& type);
+    void onTransferFileRequestSignal(const QString& receiver, const QString& fileName, qint64 size);
+    void onChatHistoryRequestSignal(const QString& name, const QDate& start, const QDate& end);
+    void onGroupMemberRequestSignal(const QString& groupName);
+    void onGroupFileQuerySignal(const QString& groupName);
+    void onGroupFileDeleteSignal(const QString& groupName, const QString& fileName);
+    void onGroupFileDownloadSignal(const QString& groupName, const QString& fileName, quint16 port);
+    void onGroupFileUploadSignal(const QString& groupName, const QString& fileName, qint64 size, quint16 port);
 
     // sendFile
-    void onGetPort(QString, quint16);
+    void onGetPort(const QString&, quint16);
 
 };
 

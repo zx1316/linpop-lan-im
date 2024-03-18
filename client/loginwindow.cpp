@@ -7,7 +7,7 @@
 #include <QCryptographicHash>
 #include <QDir>
 
-LoginWindow::LoginWindow(Network *network, MiHoYoLauncher *launcher, const QString &name, QWidget *parent) : QWidget(parent), ui(new Ui::LoginWindow), network(network), launcher(launcher) {
+LoginWindow::LoginWindow(Network *network, MiHoYoLauncher *launcher, const QString& name, QWidget *parent) : QWidget(parent), ui(new Ui::LoginWindow), network(network), launcher(launcher) {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose, true);
     QDir dir(QCoreApplication::applicationDirPath());
@@ -82,7 +82,7 @@ void LoginWindow::onloginUnauthorized() {
     ui->login_pushbutton->setEnabled(true);
 }
 
-void LoginWindow::onloginSuccess(QString imgName, QList<User> list) {
+void LoginWindow::onloginSuccess(const QString& imgName, const QList<User>& list) {
     // 开始放视频喽
     IndexWindow *w = new IndexWindow(ui->user_line_edit->text(), imgName, list, network, launcher);
     Video *v = new Video(w);

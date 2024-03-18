@@ -7,19 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>600</width>
-    <height>480</height>
+    <height>450</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>600</width>
-    <height>480</height>
+    <height>450</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>600</width>
-    <height>480</height>
+    <height>450</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -28,8 +28,8 @@
   <widget class="QPushButton" name="login_pushbutton">
    <property name="geometry">
     <rect>
-     <x>150</x>
-     <y>390</y>
+     <x>148</x>
+     <y>360</y>
      <width>301</width>
      <height>51</height>
     </rect>
@@ -52,7 +52,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>231</height>
+     <height>201</height>
     </rect>
    </property>
    <property name="maximumSize">
@@ -72,8 +72,8 @@
   <widget class="QPushButton" name="signup_pushbutton">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>390</y>
+     <x>28</x>
+     <y>360</y>
      <width>101</width>
      <height>51</height>
     </rect>
@@ -90,8 +90,8 @@
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>90</x>
-     <y>310</y>
+     <x>88</x>
+     <y>280</y>
      <width>421</width>
      <height>61</height>
     </rect>
@@ -133,8 +133,8 @@
   <widget class="QWidget" name="layoutWidget_2">
    <property name="geometry">
     <rect>
-     <x>90</x>
-     <y>250</y>
+     <x>88</x>
+     <y>220</y>
      <width>421</width>
      <height>61</height>
     </rect>
@@ -174,8 +174,8 @@
   <widget class="QPushButton" name="config_pushbutton">
    <property name="geometry">
     <rect>
-     <x>472</x>
-     <y>390</y>
+     <x>470</x>
+     <y>360</y>
      <width>101</width>
      <height>51</height>
     </rect>

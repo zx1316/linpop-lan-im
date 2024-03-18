@@ -141,11 +141,16 @@
   <widget class="QPushButton" name="confirmButton">
    <property name="geometry">
     <rect>
-     <x>130</x>
+     <x>120</x>
      <y>250</y>
      <width>121</width>
      <height>41</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
    </property>
    <property name="text">
     <string>确定</string>
@@ -154,11 +159,16 @@
   <widget class="QPushButton" name="clearCacheButton">
    <property name="geometry">
     <rect>
-     <x>290</x>
+     <x>300</x>
      <y>250</y>
      <width>121</width>
      <height>41</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
    </property>
    <property name="text">
     <string>清空图片缓存</string>

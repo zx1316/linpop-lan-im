@@ -37,23 +37,16 @@ private:
     QHash<QString, ChatRecord> msgCache;
     QString serverIp;
     quint16 serverPort = 8848;
-    void handleJson(const QJsonObject &obj);
-    void writeJson(const QJsonObject &obj);
-    void requestImg(const QString &imgName, const QJsonObject &obj);
+    void handleJson(const QJsonObject& obj);
+    void writeJson(const QJsonObject& obj);
+    void requestImg(const QString& imgName, const QJsonObject& obj);
 
 public:
     explicit Network(QObject *parent = nullptr);
     ~Network();
-    void setIpAndPort(const QString &ip, quint16 port) {
-        serverIp = ip;
-        serverPort = port;
-    }
-    void connectToServer() {
-        socket.open(QUrl("ws://" + serverIp + ":" + QString::number(serverPort)));
-    }
-    void disconnectFromServer() {
-        socket.close();
-    }
+    void setIpAndPort(const QString& ip, quint16 port);
+    void connectToServer();
+    void disconnectFromServer();
     void requestRegister(const QString &name, const QString &pwdHash, const QString &imgBase64);
     void requestLogin(const QString &name, const QString &pwdHash);
     void requestGroupMemberList(const QString &name);
@@ -71,47 +64,39 @@ public:
     void requestUploadFile(const QString &groupName, const QString &fileName, qint64 size, quint16 port);
     void requestDownloadFile(const QString &groupName, const QString &fileName, quint16 port);
     void requestDeleteFile(const QString &groupName, const QString &fileName);
-    QString getIp() {
-        return serverIp;
-    }
-    quint16 getPort() {
-        return serverPort;
-    }
-    QString getLocalIp() {
-        return socket.localAddress().toString();
-    }
-    bool isDisconnected() {
-        return socket.state() == QAbstractSocket::UnconnectedState;
-    }
+    QString getIp() const;
+    quint16 getPort() const;
+    QString getLocalIp() const;
+    bool isDisconnected() const;
 
 private slots:
-    void onBinaryMessageReceived(QByteArray array);
-    void onTextMessageReceived(QString str);
+    void onBinaryMessageReceived(const QByteArray& array);
+    void onTextMessageReceived(const QString& str);
     void onStateChanged();
 
 signals:
     void registerSuccessSignal();
     void registerFailSignal();
-    void loginSuccessSignal(QString imgName, QList<User> list);
+    void loginSuccessSignal(const QString& imgName, const QList<User>& list);
     void loginUnauthorizedSignal();
     void loginAlreadySignal();
-    void groupMemberListSignal(QString groupName, QList<QString> list);
+    void groupMemberListSignal(const QString& groupName, const QList<QString>& list);
     void createGroupSuccessSignal();
     void createGroupFailSignal();
-    void addFriendSuccessSignal(QString name, QString ip, QString imgName);
+    void addFriendSuccessSignal(const QString& name, const QString& ip, const QString& imgName);
     void addFriendFailSignal();
-    void beAddedSignal(QString name, QString ip, QString imgName);
-    void beDeletedSignal(QString name);
-    void friendOnlineSignal(QString name, QString ip);
-    void friendOfflineSignal(QString name);
-    void friendImageChangedSignal(QString name, QString imgName);
-    void newMsgSignal(QString innerName, QString sender, QString msg, QString type);
-    void requestFileSignal(QString sender, QString fileName, qint64 size);
-    void acceptFileSignal(QString receiver, quint16 port);
-    void rejectFileSignal(QString receiver);
-    void historySignal(QString name, QList<ChatRecord> list);
-    void fileListSignal(QString groupName, QList<GroupFile> list);
-    void sendMsgSuccessSignal(QString name, QString msg, QString type);
+    void beAddedSignal(const QString& name, const QString& ip, const QString& imgName);
+    void beDeletedSignal(const QString& name);
+    void friendOnlineSignal(const QString& name, const QString& ip);
+    void friendOfflineSignal(const QString& name);
+    void friendImageChangedSignal(const QString& name, const QString& imgName);
+    void newMsgSignal(const QString& innerName, const QString& sender, const QString& msg, const QString& type);
+    void requestFileSignal(const QString& sender, const QString& fileName, qint64 size);
+    void acceptFileSignal(const QString& receiver, quint16 port);
+    void rejectFileSignal(const QString& receiver);
+    void historySignal(const QString& name, const QList<ChatRecord>& list);
+    void fileListSignal(const QString& groupName, const QList<GroupFile>& list);
+    void sendMsgSuccessSignal(const QString& name, const QString& msg, const QString& type);
     void disconnectedSignal();
     void connectedSignal();
 };

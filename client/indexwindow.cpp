@@ -8,7 +8,7 @@
 #include <QFileDialog>
 #include <QBuffer>
 
-IndexWindow::IndexWindow(const QString &username, const QString &img, const QList<User> &friendList, Network *network, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::IndexWindow), network(network), launcher(launcher) {
+IndexWindow::IndexWindow(const QString& username, const QString& img, const QList<User>& friendList, Network *network, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::IndexWindow), network(network), launcher(launcher) {
     ui->setupUi(this);
     this->setAttribute(Qt::WA_DeleteOnClose, true);
 
@@ -20,7 +20,7 @@ IndexWindow::IndexWindow(const QString &username, const QString &img, const QLis
     //初始化好友列表
     this->_friend_list_layout = new QVBoxLayout();
     ui->scrollAreaWidgetContents->setLayout(_friend_list_layout);
-    for (auto item : friendList) {
+    for (auto& item : friendList) {
         auto fi = new FriendInformation(item);
         if (item.isNewMsg) {
             fi->setNewMessage();
@@ -68,9 +68,9 @@ IndexWindow::~IndexWindow() {
 // 以下是重构的新函数
 // 作者：朱炫曦
 
-void IndexWindow::deleteFriendFromUI(const QString &name) {
+void IndexWindow::deleteFriendFromUI(const QString& name) {
     FriendInformation *deleted = nullptr;
-    for(auto fi : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()){
+    for(auto& fi : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()){
         if (name == fi->getName()) {
             deleted = fi;
             break;
@@ -81,9 +81,9 @@ void IndexWindow::deleteFriendFromUI(const QString &name) {
     delete deleted;
 }
 
-void IndexWindow::insertFriendToUI(const User &user) {
+void IndexWindow::insertFriendToUI(const User& user) {
     QList<FriendInformation *> list;
-    for (auto f : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()) {
+    for (auto& f : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()) {
         list.append(f);
         _friend_list_layout->removeWidget(f);
     }
@@ -91,15 +91,15 @@ void IndexWindow::insertFriendToUI(const User &user) {
     _friend_list_layout->addWidget(fi);
     connect(fi,&FriendInformation::doubleClickedSignal,this,&IndexWindow::onChatWithFriendSignal);
     connect(fi,&FriendInformation::undefinedButtonClickedSignal,this,&IndexWindow::onDeleteFriendSignal);
-    for (auto f : list) {
+    for (auto& f : list) {
         _friend_list_layout->addWidget(f);
     }
 }
 
-void IndexWindow::putFriendToFront(const QString &name) {
+void IndexWindow::putFriendToFront(const QString& name) {
     QList<FriendInformation *> list;
     FriendInformation *fi = nullptr;
-    for (auto f : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
+    for (auto& f : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
         if (f->getName() == name) {
             fi = f;
         }
@@ -108,7 +108,7 @@ void IndexWindow::putFriendToFront(const QString &name) {
     }
     list.removeOne(fi);
     list.push_front(fi);
-    for (auto f : list) {
+    for (auto& f : list) {
         _friend_list_layout->addWidget(f);
     }
 }
@@ -147,8 +147,8 @@ void IndexWindow::onAddFriendButtonClicked() {
 void IndexWindow::onCreateGroupButtonClicked() {
     launcher->gachaLaunch();
     QList<QString> friendList;
-    for (auto f : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()) {
-        if (f->getName()[0] != '_') {
+    for (auto& f : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()) {
+        if (f->getName().at(0) != '_') {
             friendList.append(f->getName());
         }
     }
@@ -219,7 +219,7 @@ void IndexWindow::onDeleteFriendSignal(FriendInformation *fi) {
 }
 
 // network feedback
-void IndexWindow::onGroupMemberListFeedbackSignal(QString groupName, QList<QString> list) {
+void IndexWindow::onGroupMemberListFeedbackSignal(const QString& groupName, const QList<QString>& list) {
     if (_chat_windows.contains(groupName)) {
         _chat_windows[groupName]->onGroupMemberSignal(list);
     }
@@ -237,7 +237,7 @@ void IndexWindow::onCreateGroupFailFeedbackSignal() {
     }
 }
 
-void IndexWindow::onAddFriendSuccessFeedbackSignal(QString name, QString ip, QString imgName) {
+void IndexWindow::onAddFriendSuccessFeedbackSignal(const QString& name, const QString& ip, const QString& imgName) {
     if (_add_friends_window != nullptr) {
         _add_friends_window->onAddFriendSuccess();
     }
@@ -250,14 +250,14 @@ void IndexWindow::onAddFriendFailFeedbackSignal() {
     }
 }
 
-void IndexWindow::onBeAddedFeedbackSignal(QString name, QString ip, QString imgName) {
+void IndexWindow::onBeAddedFeedbackSignal(const QString& name, const QString& ip, const QString& imgName) {
     if (name[0] != '_') {
         QMessageBox::information(this, "喜报", "你已被" + name + "添加为好友！");
     }
     insertFriendToUI({name, imgName, ip, false});
 }
 
-void IndexWindow::onBeDeletedFeedbackSignal(QString name) {
+void IndexWindow::onBeDeletedFeedbackSignal(const QString& name) {
     QMessageBox::information(this, "悲报", "你已被好友" + name + "删除，玩原神玩的！");
     if(_chat_windows.contains(name)){
         _chat_windows[name]->close();
@@ -265,8 +265,8 @@ void IndexWindow::onBeDeletedFeedbackSignal(QString name) {
     deleteFriendFromUI(name);
 }
 
-void IndexWindow::onFriendOnlineFeedbackSignal(QString name, QString ip) {
-    for (auto f : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
+void IndexWindow::onFriendOnlineFeedbackSignal(const QString& name, const QString& ip) {
+    for (auto& f : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
         if (f->getName() == name) {
             f->setIp(ip);
             if (!f->isNewMsg()) {
@@ -277,8 +277,8 @@ void IndexWindow::onFriendOnlineFeedbackSignal(QString name, QString ip) {
     }
 }
 
-void IndexWindow::onFriendOfflineFeedbackSignal(QString name) {
-    for (auto f : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
+void IndexWindow::onFriendOfflineFeedbackSignal(const QString& name) {
+    for (auto& f : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
         if (f->getName() == name) {
             f->setIp("");
             if (!f->isNewMsg()) {
@@ -289,8 +289,8 @@ void IndexWindow::onFriendOfflineFeedbackSignal(QString name) {
     }
 }
 
-void IndexWindow::onFriendImageChangedFeedbackSignal(QString name, QString imgName) {
-    for (auto f : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
+void IndexWindow::onFriendImageChangedFeedbackSignal(const QString& name, const QString& imgName) {
+    for (auto& f : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
         if (f->getName() == name) {
             f->setIcon(imgName);
             break;
@@ -298,12 +298,12 @@ void IndexWindow::onFriendImageChangedFeedbackSignal(QString name, QString imgNa
     }
 }
 
-void IndexWindow::onNewMsgFeedbackSignal(QString innerName, QString sender, QString msg, QString type) {
+void IndexWindow::onNewMsgFeedbackSignal(const QString& innerName, const QString& sender, const QString& msg, const QString& type) {
     putFriendToFront(innerName);
     if (_chat_windows.contains(innerName)) {
         _chat_windows[innerName]->onNewMessageSignal(sender, msg, type);
     } else {
-        for (auto f : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
+        for (auto& f : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
             if (f->getName() == innerName) {
                 f->setNewMessage();
                 break;
@@ -312,14 +312,14 @@ void IndexWindow::onNewMsgFeedbackSignal(QString innerName, QString sender, QStr
     }
 }
 
-void IndexWindow::onRequestFileFeedbackSignal(QString sender, QString fileName, qint64 size) {
+void IndexWindow::onRequestFileFeedbackSignal(const QString& sender, const QString& fileName, qint64 size) {
     if (QMessageBox::question(this, "传输文件请求", sender + "请求向您发送文件" + fileName + " (" + IndexWindow::fileSizeFormatter(size) + ")", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
         QString path = QFileDialog::getSaveFileName(this, "保存文件", "../" + fileName);
         if (path == "") {
             network->requestRejectFile(sender);
         } else {
             QString ip;
-            for (auto f : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
+            for (auto& f : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
                 if (f->getName() == sender) {
                     ip = f->getIp();
                     break;
@@ -335,10 +335,10 @@ void IndexWindow::onRequestFileFeedbackSignal(QString sender, QString fileName, 
     }
 }
 
-void IndexWindow::onAcceptFileFeedbackSignal(QString receiver, quint16 port) {
+void IndexWindow::onAcceptFileFeedbackSignal(const QString& receiver, quint16 port) {
     if (_chat_windows.contains(receiver)) {
         QString ip;
-        for (auto f : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()) {
+        for (auto& f : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()) {
             if (f->getName() == receiver) {
                 ip = f->getIp();
                 break;
@@ -348,19 +348,19 @@ void IndexWindow::onAcceptFileFeedbackSignal(QString receiver, quint16 port) {
     }
 }
 
-void IndexWindow::onRejectFileFeedbackSignal(QString receiver) {
+void IndexWindow::onRejectFileFeedbackSignal(const QString& receiver) {
     if (_chat_windows.contains(receiver)) {
         _chat_windows[receiver]->onRejectTransferFileSignal();
     }
 }
 
-void IndexWindow::onHistoryFeedbackSignal(QString name, QList<ChatRecord> list) {
+void IndexWindow::onHistoryFeedbackSignal(const QString& name, const QList<ChatRecord>& list) {
     if (_chat_windows.contains(name)) {
         _chat_windows[name]->onReceiveHistorySignal(list);
     }
 }
 
-void IndexWindow::onFileListFeedbackSignal(QString groupName, QList<GroupFile> list) {
+void IndexWindow::onFileListFeedbackSignal(const QString& groupName, const QList<GroupFile>& list) {
     if (_chat_windows.contains(groupName)) {
         _chat_windows[groupName]->onGroupFileSignal(list);
     }
@@ -372,8 +372,8 @@ void IndexWindow::onDisconnectedSignal() {
 }
 
 // add friend window
-void IndexWindow::onAddFriendRequestSignal(QString name) {
-    for (auto fi : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()) {
+void IndexWindow::onAddFriendRequestSignal(const QString& name) {
+    for (auto& fi : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()) {
         if (name == fi->getName() && _add_friends_window != nullptr) {
             _add_friends_window->onAddFriendAlready();
             return;
@@ -387,15 +387,15 @@ void IndexWindow::onAddFriendWindowClosed() {
     _add_friends_window = nullptr;
 }
 
-void IndexWindow::onSendMsgSuccessSignal(QString name, QString msg, QString type) {
+void IndexWindow::onSendMsgSuccessSignal(const QString& name, const QString& msg, const QString& type) {
     if (_chat_windows.contains(name)) {
         _chat_windows[name]->onSendMessageSuccessSignal(msg, type);
     }
 }
 
 // create group window
-void IndexWindow::onCreateGroupRequestSignal(QString groupName, QString imgName, QList<QString> list) {
-    for (auto fi : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()) {
+void IndexWindow::onCreateGroupRequestSignal(const QString& groupName, const QString& imgName, const QList<QString>& list) {
+    for (auto& fi : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()) {
         if (groupName == fi->getName() && _create_group_window != nullptr) {
             _create_group_window->onCreateGroupFailSignal();
             return;
@@ -410,53 +410,54 @@ void IndexWindow::onCreateGroupWindowClosed() {
 }
 
 // chat window
-void IndexWindow::onChatWindowClosed(QString name) {
+void IndexWindow::onChatWindowClosed(const QString& name) {
     _chat_windows.remove(name);
 }
 
-void IndexWindow::onSendMessageRequestSignal(QString name, QString msg, QString type) {
+void IndexWindow::onSendMessageRequestSignal(const QString& name, const QString& msg, const QString& type) {
     putFriendToFront(name);
     network->requestSendMsg(name, msg, type);
 }
 
-void IndexWindow::onTransferFileRequestSignal(QString receiver, QString fileName, qint64 size) {
+void IndexWindow::onTransferFileRequestSignal(const QString& receiver, const QString& fileName, qint64 size) {
     network->requestRequestFile(receiver, fileName, size);
 }
 
-void IndexWindow::onChatHistoryRequestSignal(QString name, QDate start, QDate end) {
+void IndexWindow::onChatHistoryRequestSignal(const QString& name, const QDate& start, const QDate& end) {
     network->requestHistory(name, start, end);
 }
 
-void IndexWindow::onGroupMemberRequestSignal(QString groupName) {
+void IndexWindow::onGroupMemberRequestSignal(const QString& groupName) {
     network->requestGroupMemberList(groupName);
 }
 
-void IndexWindow::onGroupFileQuerySignal(QString groupName) {
+void IndexWindow::onGroupFileQuerySignal(const QString& groupName) {
     network->requestGroupFileList(groupName);
 }
 
-void IndexWindow::onGroupFileDeleteSignal(QString groupName, QString fileName) {
+void IndexWindow::onGroupFileDeleteSignal(const QString& groupName, const QString& fileName) {
     network->requestDeleteFile(groupName, fileName);
 }
 
-void IndexWindow::onGroupFileDownloadSignal(QString groupName, QString fileName, quint16 port) {
+void IndexWindow::onGroupFileDownloadSignal(const QString& groupName, const QString& fileName, quint16 port) {
     network->requestDownloadFile(groupName, fileName, port);
 }
 
-void IndexWindow::onGroupFileUploadSignal(QString groupName, QString fileName, qint64 size, quint16 port) {
+void IndexWindow::onGroupFileUploadSignal(const QString& groupName, const QString& fileName, qint64 size, quint16 port) {
     network->requestUploadFile(groupName, fileName, size, port);
 }
 
 // sendFile
-void IndexWindow::onGetPort(QString name, quint16 port) {
+void IndexWindow::onGetPort(const QString& name, quint16 port) {
     network->requestAcceptFile(name, port);
 }
 
 void IndexWindow::closeEvent(QCloseEvent *) {
-    for (ChatWindow *w:_chat_windows) {
+    for (ChatWindow *w : qAsConst(_chat_windows)) {
         w->close();
     }
-    for (FriendInformation *f:ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()) {
+    const auto infos = ui->scrollAreaWidgetContents->findChildren<FriendInformation *>();
+    for (FriendInformation *f : infos) {
         disconnect(f);
         delete f;
     }

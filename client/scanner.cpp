@@ -1,7 +1,7 @@
 #include "scanner.h"
 #include <QDirIterator>
 
-Scanner::Scanner(const QString &root, QObject *parent) : QObject(parent), root(root) {
+Scanner::Scanner(const QString& root, QObject *parent) : QObject(parent), root(root) {
 
 }
 

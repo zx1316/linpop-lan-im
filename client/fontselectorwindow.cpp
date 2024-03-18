@@ -2,7 +2,7 @@
 #include "ui_fontselectorwindow.h"
 #include <QColorDialog>
 
-FontSelectorWindow::FontSelectorWindow(const QFont &font, const QColor &color, QWidget *parent) : QWidget(parent), ui(new Ui::FontSelectorWindow), color(color) {
+FontSelectorWindow::FontSelectorWindow(const QFont& font, const QColor& color, QWidget *parent) : QWidget(parent), ui(new Ui::FontSelectorWindow), color(color) {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose, true);
     ui->colorLabel->setStyleSheet(QString("QLabel{background:rgb(%1, %2, %3);}").arg(color.red()).arg(color.green()).arg(color.blue()));

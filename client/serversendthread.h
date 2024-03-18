@@ -23,7 +23,7 @@ class ServerSendThread : public QThread {
     Q_OBJECT
 
 public:
-    explicit ServerSendThread(const QString &path, const QString &clientIp, QObject *parent = nullptr);
+    ServerSendThread(const QString& path, const QString& clientIp, QObject *parent = nullptr);
     ~ServerSendThread();
     void run() override;
 

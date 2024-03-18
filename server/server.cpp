@@ -46,11 +46,11 @@ void Server::onClear(Client *client) {
     threadMap.remove(client);
 }
 
-void Server::toSendTextMessage(QString str, QWebSocket *socket) {
+void Server::toSendTextMessage(const QString& str, QWebSocket *socket) {
     socket->sendTextMessage(str);
 }
 
-void Server::toSendBinaryMessage(QByteArray array, QWebSocket *socket) {
+void Server::toSendBinaryMessage(const QByteArray& array, QWebSocket *socket) {
     socket->sendBinaryMessage(array);
 }
 

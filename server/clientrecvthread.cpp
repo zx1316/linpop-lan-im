@@ -1,6 +1,6 @@
 #include "clientrecvthread.h"
 
-ClientRecvThread::ClientRecvThread(const QString &path, const QString &serverIp, quint16 port, QObject *parent) : QThread{parent}, file(path), ip(serverIp), port(port) {
+ClientRecvThread::ClientRecvThread(const QString& path, const QString& serverIp, quint16 port, QObject *parent) : QThread{parent}, file(path), ip(serverIp), port(port) {
 
 }
 

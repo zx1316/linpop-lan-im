@@ -27,6 +27,40 @@ FriendInformation::~FriendInformation() {
     delete ui;
 }
 
+void FriendInformation::setNewMessage() {
+    newMsg = true;
+    this->setStyleSheet("#widget{border:1px solid black;background-color:chartreuse}");
+}
+
+void FriendInformation::refreshColor() {
+    newMsg = false;
+    this->setStyleSheet((name[0] == '_' || ui->ip_label->text() != "离线") ? "#widget{border:1px solid black;background:Cyan}":"#widget{border:1px solid black;background:gray}");
+}
+
+void FriendInformation::setIp(const QString &ip) {
+    if (ip == "") {
+        ui->ip_label->setText("离线");
+    } else {
+        ui->ip_label->setText(ip);
+    }
+}
+
+QString FriendInformation::getIp() const {
+    return ui->ip_label->text();
+}
+
+QString FriendInformation::getName() const {
+    return name;
+}
+
+void FriendInformation::setIcon(const QString& imgName) {
+    ui->picture_label->setIcon(QIcon(QCoreApplication::applicationDirPath() + "/cached_images/" + imgName));
+}
+
+bool FriendInformation::isNewMsg() const {
+    return newMsg;
+}
+
 void FriendInformation::onUndefinedButtonClicked() {
     emit undefinedButtonClickedSignal(this);
 }

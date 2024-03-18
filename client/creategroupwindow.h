@@ -12,7 +12,7 @@ class CreateGroupWindow : public QWidget {
     Q_OBJECT
 
 public:
-    explicit CreateGroupWindow(const QList<QString> &friendList, const QString &selfName, MiHoYoLauncher *, QWidget *parent = nullptr);
+    CreateGroupWindow(const QList<QString>& friendList, const QString& selfName, MiHoYoLauncher *, QWidget *parent = nullptr);
     ~CreateGroupWindow();
     void onCreateGroupSuccessSignal();
     void onCreateGroupFailSignal();
@@ -29,7 +29,7 @@ private slots:
     void onSelectImgButtonClicked();
 
 signals:
-    void createGroupRequestSignal(QString groupName, QString imgName, QList<QString>);
+    void createGroupRequestSignal(const QString& groupName, const QString& imgName, const QList<QString>&);
     void windowClosed();
 };
 

@@ -35,20 +35,20 @@ class ChatWindow : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ChatWindow(const QString &fromName, const QString &toName, const QString &serverIp, MiHoYoLauncher *, QWidget *parent = nullptr);
+    ChatWindow(const QString& fromName, const QString& toName, const QString& serverIp, MiHoYoLauncher *, QWidget *parent = nullptr);
     ~ChatWindow();
     // 主窗口发来的传送文件反馈
-    void onAcceptTransferFileSignal(const QString &ip, int port);
+    void onAcceptTransferFileSignal(const QString& ip, int port);
     void onRejectTransferFileSignal();
     // 主窗口发来的历史记录
-    void onReceiveHistorySignal(const QList<ChatRecord> &);
+    void onReceiveHistorySignal(const QList<ChatRecord>&);
     // 主窗口发来的新消息
-    void onNewMessageSignal(const QString &sender, const QString &msg, const QString &type);
+    void onNewMessageSignal(const QString& sender, const QString& msg, const QString& type);
     // 主窗口发来的成员列表
-    void onGroupMemberSignal(const QList<QString> &);
+    void onGroupMemberSignal(const QList<QString>&);
     // 主窗口发来的群文件列表
-    void onGroupFileSignal(const QList<GroupFile> &);
-    void onSendMessageSuccessSignal(const QString &msg, const QString &type);
+    void onGroupFileSignal(const QList<GroupFile>&);
+    void onSendMessageSuccessSignal(const QString& msg, const QString& type);
 
 protected:
     bool eventFilter(QObject *target, QEvent *event) override;
@@ -70,21 +70,21 @@ private:
 
 private slots:
     // 字体窗口更新槽函数
-    void onUpdateFont(QFont font, QColor color);
+    void onUpdateFont(const QFont& font, const QColor& color);
     // 文件传输窗口请求发送文件槽函数，即刻转发
-    void onTranferFileRequestSignal(QString, qint64);
+    void onTranferFileRequestSignal(const QString&, qint64);
     // 历史记录窗口请求查询槽函数，即刻转发
-    void onChatHistoryRequestSignal(QDate, QDate);
+    void onChatHistoryRequestSignal(const QDate&, const QDate&);
     // 群成员窗口请求查询槽函数，即刻转发
     void onGroupMemberRequestSignal();
     // 群文件窗口请求查询槽函数，即刻转发
     void onGroupFileQuerySignal();
     // 群文件窗口请求删除槽函数，即刻转发
-    void onGroupFileDeleteSignal(QString fileName);
+    void onGroupFileDeleteSignal(const QString& fileName);
     // 群文件窗口请求下载槽函数，即刻转发
-    void onGroupFileDownloadSignal(QString fileName, quint16 port);
+    void onGroupFileDownloadSignal(const QString& fileName, quint16 port);
     // 群文件窗口请求上传槽函数，即刻转发
-    void onGroupFileUploadSignal(QString fileName, qint64 size, quint16 port);
+    void onGroupFileUploadSignal(const QString& fileName, qint64 size, quint16 port);
 
     // 本窗口按钮点击的槽函数
     void onFontButtonClicked();
@@ -93,7 +93,7 @@ private slots:
     void onMemberButtonClicked();
     void onHistoryButtonClicked();
     void onSendButtonClicked();
-    void onAnchorClicked(QUrl url);
+    void onAnchorClicked(const QUrl& url);
 
     // 本窗口的子窗口关闭后的槽函数
     void onTransferFileWindowClosed();
@@ -104,18 +104,18 @@ private slots:
 
 signals:
     // 本窗口被关闭信号
-    void windowClosed(QString name);
-    void sendMessageRequestSignal(QString name, QString msg, QString type);
-    void transferFileRequestSignal(QString receiver, QString fileName, qint64 size);
-    void chatHistoryRequestSignal(QString name, QDate start, QDate end);
-    void groupMemberRequestSignal(QString groupName);
-    void groupFileQuerySignal(QString groupName);
+    void windowClosed(const QString& name);
+    void sendMessageRequestSignal(const QString& name, const QString& msg, const QString& type);
+    void transferFileRequestSignal(const QString& receiver, const QString& fileName, qint64 size);
+    void chatHistoryRequestSignal(const QString& name, const QDate& start, const QDate& end);
+    void groupMemberRequestSignal(const QString& groupName);
+    void groupFileQuerySignal(const QString& groupName);
     // 请求删除群文件信号
-    void groupFileDeleteSignal(QString groupName, QString fileName);
+    void groupFileDeleteSignal(const QString& groupName, const QString& fileName);
     // 请求下载群文件信号
-    void groupFileDownloadSignal(QString groupName, QString fileName, quint16 port);
+    void groupFileDownloadSignal(const QString& groupName, const QString& fileName, quint16 port);
     // 请求上传群文件信号
-    void groupFileUploadSignal(QString groupName, QString fileName, qint64 size, quint16 port);
+    void groupFileUploadSignal(const QString& groupName, const QString& fileName, qint64 size, quint16 port);
 };
 
 #endif // CHATWINDOW_H

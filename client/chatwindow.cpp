@@ -6,7 +6,7 @@
 #include <QDesktopServices>
 #include <QWindowStateChangeEvent>
 
-ChatWindow::ChatWindow(const QString &sender, const QString &receiver, const QString &serverIp, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::ChatWindow), selfName(sender), receiver(receiver), serverIp(serverIp), launcher(launcher) {
+ChatWindow::ChatWindow(const QString& sender, const QString& receiver, const QString& serverIp, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::ChatWindow), selfName(sender), receiver(receiver), serverIp(serverIp), launcher(launcher) {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose, true);
     if (receiver[0] == '_') {
@@ -65,12 +65,12 @@ bool ChatWindow::eventFilter(QObject *target, QEvent *event) {
     return QWidget::eventFilter(target, event);
 }
 
-void ChatWindow::onAnchorClicked(QUrl url) {
+void ChatWindow::onAnchorClicked(const QUrl& url) {
     launcher->gachaLaunch();
     QDesktopServices::openUrl(url);
 }
 
-void ChatWindow::onUpdateFont(QFont font, QColor color) {
+void ChatWindow::onUpdateFont(const QFont& font, const QColor& color) {
     launcher->gachaLaunch();
     inputColor = color;
     ui->inputTextbox->setFont(font);
@@ -78,11 +78,11 @@ void ChatWindow::onUpdateFont(QFont font, QColor color) {
     ui->inputTextbox->setStyleSheet(colorStr.arg(QString::number(color.red()), QString::number(color.green()), QString::number(color.blue())));
 }
 
-void ChatWindow::onTranferFileRequestSignal(QString fileName, qint64 size) {
+void ChatWindow::onTranferFileRequestSignal(const QString& fileName, qint64 size) {
     emit transferFileRequestSignal(receiver, fileName, size);
 }
 
-void ChatWindow::onChatHistoryRequestSignal(QDate start, QDate end) {
+void ChatWindow::onChatHistoryRequestSignal(const QDate& start, const QDate& end) {
     emit chatHistoryRequestSignal(receiver, start, end);
 }
 
@@ -96,15 +96,15 @@ void ChatWindow::onGroupFileQuerySignal() {
     emit groupFileQuerySignal(receiver);
 }
 // 群文件窗口请求删除槽函数，即刻转发
-void ChatWindow::onGroupFileDeleteSignal(QString fileName) {
+void ChatWindow::onGroupFileDeleteSignal(const QString& fileName) {
     emit groupFileDeleteSignal(receiver, fileName);
 }
 // 群文件窗口请求下载槽函数，即刻转发
-void ChatWindow::onGroupFileDownloadSignal(QString fileName, quint16 port) {
+void ChatWindow::onGroupFileDownloadSignal(const QString& fileName, quint16 port) {
     emit groupFileDownloadSignal(receiver, fileName, port);
 }
 // 群文件窗口请求上传槽函数，即刻转发
-void ChatWindow::onGroupFileUploadSignal(QString fileName, qint64 size, quint16 port) {
+void ChatWindow::onGroupFileUploadSignal(const QString& fileName, qint64 size, quint16 port) {
     emit groupFileUploadSignal(receiver, fileName, size, port);
 }
 
@@ -254,7 +254,7 @@ void ChatWindow::onHistoryWindowClosed() {
 }
 
 // 主窗口发来的传送文件反馈槽函数
-void ChatWindow::onAcceptTransferFileSignal(const QString &ip, int port) {
+void ChatWindow::onAcceptTransferFileSignal(const QString& ip, int port) {
     if (transferFileWindow != nullptr) {
         transferFileWindow->onAcceptTransferFileSignal(ip, port);
     }
@@ -267,11 +267,11 @@ void ChatWindow::onRejectTransferFileSignal() {
 }
 
 // 主窗口发来的收到历史记录槽函数
-void ChatWindow::onReceiveHistorySignal(const QList<ChatRecord> &list) {
+void ChatWindow::onReceiveHistorySignal(const QList<ChatRecord>& list) {
     QString html1;
     QString head1 = "<span style=\"font-size:9pt;color:#008040\">%1&emsp;%2</span><br>";
     QString head2 = "<span style=\"font-size:9pt;color:#0000FF\">%1&emsp;%2</span><br>";
-    for (auto item : list) {
+    for (const auto& item : list) {
         if (item.sender == selfName) {
             html1 += head1.arg(item.sender, QDateTime::fromMSecsSinceEpoch(item.timestamp).toString("yyyy/MM/dd hh:mm:ss"));
         } else {
@@ -297,7 +297,7 @@ void ChatWindow::onReceiveHistorySignal(const QList<ChatRecord> &list) {
     }
 }
 // 主窗口发来的新消息槽函数
-void ChatWindow::onNewMessageSignal(const QString &sender, const QString &msg, const QString &type) {
+void ChatWindow::onNewMessageSignal(const QString& sender, const QString& msg, const QString& type) {
     QString head;
     if (sender == selfName) {
         head = "<span style=\"font-size:9;color:#008040\">%1&emsp;%2</span><br>";
@@ -316,19 +316,19 @@ void ChatWindow::onNewMessageSignal(const QString &sender, const QString &msg, c
     ui->chatBrowser->moveCursor(QTextCursor::End);
 }
 // 主窗口发来的成员列表槽函数
-void ChatWindow::onGroupMemberSignal(const QList<QString> &list) {
+void ChatWindow::onGroupMemberSignal(const QList<QString>& list) {
     if (memberWindow != nullptr) {
         memberWindow->onGroupMemberSignal(list);
     }
 }
 // 主窗口发来的群文件列表槽函数
-void ChatWindow::onGroupFileSignal(const QList<GroupFile> &list) {
+void ChatWindow::onGroupFileSignal(const QList<GroupFile>& list) {
     if (groupFileWindow != nullptr) {
         groupFileWindow->refreshFileList(list);
     }
 }
 
-void ChatWindow::onSendMessageSuccessSignal(const QString &msg, const QString &type) {
+void ChatWindow::onSendMessageSuccessSignal(const QString& msg, const QString& type) {
     onNewMessageSignal(selfName, msg, type);
     ui->sendButton->setDisabled(false);
 }

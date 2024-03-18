@@ -29,13 +29,13 @@ void ChatHistoryWindow::onQueryButtonClicked() {
     emit chatHistoryRequestSignal(start, end);
 }
 
-void ChatHistoryWindow::refreshRecords(const QString &html) {
+void ChatHistoryWindow::refreshRecords(const QString& html) {
     ui->chatHistoryBrowser->setHtml(html);
     ui->chatHistoryBrowser->moveCursor(QTextCursor::End);
     ui->queryButton->setDisabled(false);
 }
 
-void ChatHistoryWindow::onAnchorClicked(QUrl url) {
+void ChatHistoryWindow::onAnchorClicked(const QUrl& url) {
     QDesktopServices::openUrl(url);
 }
 

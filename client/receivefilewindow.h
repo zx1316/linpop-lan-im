@@ -12,7 +12,7 @@ class ReceiveFileWindow : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ReceiveFileWindow(const QString &path, const QString &sender, const QString &ip, QWidget *parent = nullptr);
+    ReceiveFileWindow(const QString& path, const QString& sender, const QString& ip, QWidget *parent = nullptr);
     ~ReceiveFileWindow();
 
 public slots:
@@ -24,7 +24,7 @@ private:
     ServerRecvThread *thread = nullptr;
 
 signals:
-    void accept(QString, int);
+    void accept(const QString&, int);
 };
 
 #endif // RECEIVEFILEWINDOW_H

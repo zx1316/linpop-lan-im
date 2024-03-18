@@ -10,13 +10,13 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>640</height>
+    <height>600</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>800</width>
-    <height>640</height>
+    <height>600</height>
    </size>
   </property>
   <property name="maximumSize">
@@ -71,19 +71,19 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>190</width>
-           <height>25</height>
+           <width>150</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>190</width>
-           <height>25</height>
+           <width>150</width>
+           <height>20</height>
           </size>
          </property>
          <property name="font">
           <font>
-           <pointsize>14</pointsize>
+           <pointsize>11</pointsize>
           </font>
          </property>
          <property name="text">
@@ -95,24 +95,24 @@
         <widget class="QDateEdit" name="startDate">
          <property name="minimumSize">
           <size>
-           <width>190</width>
+           <width>150</width>
            <height>33</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>190</width>
+           <width>150</width>
            <height>33</height>
           </size>
          </property>
          <property name="font">
           <font>
-           <pointsize>14</pointsize>
+           <pointsize>11</pointsize>
           </font>
          </property>
          <property name="dateTime">
           <datetime>
-           <hour>16</hour>
+           <hour>8</hour>
            <minute>0</minute>
            <second>0</second>
            <year>2023</year>
@@ -135,19 +135,19 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>190</width>
-           <height>25</height>
+           <width>150</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>190</width>
-           <height>25</height>
+           <width>150</width>
+           <height>20</height>
           </size>
          </property>
          <property name="font">
           <font>
-           <pointsize>14</pointsize>
+           <pointsize>11</pointsize>
           </font>
          </property>
          <property name="text">
@@ -159,24 +159,24 @@
         <widget class="QDateEdit" name="endDate">
          <property name="minimumSize">
           <size>
-           <width>190</width>
+           <width>150</width>
            <height>33</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>190</width>
+           <width>150</width>
            <height>33</height>
           </size>
          </property>
          <property name="font">
           <font>
-           <pointsize>14</pointsize>
+           <pointsize>11</pointsize>
           </font>
          </property>
          <property name="dateTime">
           <datetime>
-           <hour>16</hour>
+           <hour>8</hour>
            <minute>0</minute>
            <second>0</second>
            <year>2023</year>
@@ -193,19 +193,19 @@
         <widget class="QPushButton" name="queryButton">
          <property name="minimumSize">
           <size>
-           <width>190</width>
+           <width>150</width>
            <height>33</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>190</width>
+           <width>150</width>
            <height>33</height>
           </size>
          </property>
          <property name="font">
           <font>
-           <pointsize>14</pointsize>
+           <pointsize>11</pointsize>
           </font>
          </property>
          <property name="text">

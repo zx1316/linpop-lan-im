@@ -25,7 +25,36 @@ Network::~Network() {
     socket.close();
 }
 
-void Network::writeJson(const QJsonObject &obj) {
+void Network::setIpAndPort(const QString& ip, quint16 port) {
+    serverIp = ip;
+    serverPort = port;
+}
+
+void Network::connectToServer() {
+    socket.open(QUrl("ws://" + serverIp + ":" + QString::number(serverPort)));
+}
+
+void Network::disconnectFromServer() {
+    socket.close();
+}
+
+QString Network::getIp() const {
+    return serverIp;
+}
+
+quint16 Network::getPort() const {
+    return serverPort;
+}
+
+QString Network::getLocalIp() const {
+    return socket.localAddress().toString();
+}
+
+bool Network::isDisconnected() const {
+    return socket.state() == QAbstractSocket::UnconnectedState;
+}
+
+void Network::writeJson(const QJsonObject& obj) {
     QJsonDocument document(obj);
     auto array = document.toJson(QJsonDocument::Compact);
     if (array.length() > 4096) {
@@ -36,7 +65,7 @@ void Network::writeJson(const QJsonObject &obj) {
     }
 }
 
-void Network::requestRegister(const QString &name, const QString &pwdHash, const QString &imgBase64) {
+void Network::requestRegister(const QString& name, const QString& pwdHash, const QString& imgBase64) {
     QJsonObject obj;
     obj["cmd"] = "register";
     obj["name"] = name;
@@ -45,7 +74,7 @@ void Network::requestRegister(const QString &name, const QString &pwdHash, const
     writeJson(obj);
 }
 
-void Network::requestLogin(const QString &name, const QString &pwdHash) {
+void Network::requestLogin(const QString& name, const QString& pwdHash) {
     QJsonObject obj;
     obj["cmd"] = "login";
     obj["name"] = name;
@@ -53,41 +82,41 @@ void Network::requestLogin(const QString &name, const QString &pwdHash) {
     writeJson(obj);
 }
 
-void Network::requestGroupMemberList(const QString &name) {
+void Network::requestGroupMemberList(const QString& name) {
     QJsonObject obj;
     obj["cmd"] = "group_member_list";
     obj["group_name"] = name;
     writeJson(obj);
 }
 
-void Network::requestCreateGroup(const QString &groupName, const QString &imgName, const QList<QString> &memberList) {
+void Network::requestCreateGroup(const QString& groupName, const QString& imgName, const QList<QString>& memberList) {
     QJsonObject obj;
     obj["cmd"] = "create_group";
     obj["group_name"] = groupName;
     obj["img"] = imgName;
     QJsonArray arr;
-    for (auto item : memberList) {
+    for (const auto& item : memberList) {
         arr.append(item);
     }
     obj["init"] = arr;
     writeJson(obj);
 }
 
-void Network::requestAddFriend(const QString &name) {
+void Network::requestAddFriend(const QString& name) {
     QJsonObject obj;
     obj["cmd"] = "add";
     obj["name"] = name;
     writeJson(obj);
 }
 
-void Network::requestDeleteFriend(const QString &name) {
+void Network::requestDeleteFriend(const QString& name) {
     QJsonObject obj;
     obj["cmd"] = "delete";
     obj["name"] = name;
     writeJson(obj);
 }
 
-void Network::requestSendMsg(const QString &receiver, const QString &msg, const QString &type) {
+void Network::requestSendMsg(const QString& receiver, const QString& msg, const QString& type) {
     QJsonObject obj;
     obj["cmd"] = "send_msg";
     obj["receiver"] = receiver;
@@ -97,7 +126,7 @@ void Network::requestSendMsg(const QString &receiver, const QString &msg, const 
     msgCache[receiver] = {"", msg, type, 0};
 }
 
-void Network::requestLatestHistory(const QString &name) {
+void Network::requestLatestHistory(const QString& name) {
     QJsonObject obj;
     obj["cmd"] = "history";
     obj["name"] = name;
@@ -107,7 +136,7 @@ void Network::requestLatestHistory(const QString &name) {
     writeJson(obj);
 }
 
-void Network::requestHistory(const QString &name, const QDate &start, const QDate &end) {
+void Network::requestHistory(const QString& name, const QDate& start, const QDate& end) {
     QJsonObject obj;
     obj["cmd"] = "history";
     obj["name"] = name;
@@ -117,7 +146,7 @@ void Network::requestHistory(const QString &name, const QDate &start, const QDat
     writeJson(obj);
 }
 
-void Network::requestRequestFile(const QString &receiver, const QString &fileName, qint64 size) {
+void Network::requestRequestFile(const QString& receiver, const QString& fileName, qint64 size) {
     QJsonObject obj;
     obj["cmd"] = "request_file";
     obj["receiver"] = receiver;
@@ -126,7 +155,7 @@ void Network::requestRequestFile(const QString &receiver, const QString &fileNam
     writeJson(obj);
 }
 
-void Network::requestAcceptFile(const QString &sender, quint16 port) {
+void Network::requestAcceptFile(const QString& sender, quint16 port) {
     QJsonObject obj;
     obj["cmd"] = "response_file";
     obj["sender"] = sender;
@@ -134,7 +163,7 @@ void Network::requestAcceptFile(const QString &sender, quint16 port) {
     writeJson(obj);
 }
 
-void Network::requestRejectFile(const QString &sender) {
+void Network::requestRejectFile(const QString& sender) {
     QJsonObject obj;
     obj["cmd"] = "response_file";
     obj["sender"] = sender;
@@ -142,21 +171,21 @@ void Network::requestRejectFile(const QString &sender) {
     writeJson(obj);
 }
 
-void Network::requestChangeImg(const QString &imgName) {
+void Network::requestChangeImg(const QString& imgName) {
     QJsonObject obj;
     obj["cmd"] = "change_img";
     obj["img"] = imgName;
     writeJson(obj);
 }
 
-void Network::requestGroupFileList(const QString &groupName) {
+void Network::requestGroupFileList(const QString& groupName) {
     QJsonObject obj;
     obj["cmd"] = "file_list";
     obj["group_name"] = groupName;
     writeJson(obj);
 }
 
-void Network::requestUploadFile(const QString &groupName, const QString &fileName, qint64 size, quint16 port) {
+void Network::requestUploadFile(const QString& groupName, const QString& fileName, qint64 size, quint16 port) {
     QJsonObject obj;
     obj["cmd"] = "upload_file";
     obj["group_name"] = groupName;
@@ -166,7 +195,7 @@ void Network::requestUploadFile(const QString &groupName, const QString &fileNam
     writeJson(obj);
 }
 
-void Network::requestDownloadFile(const QString &groupName, const QString &fileName, quint16 port) {
+void Network::requestDownloadFile(const QString& groupName, const QString& fileName, quint16 port) {
     QJsonObject obj;
     obj["cmd"] = "download_file";
     obj["group_name"] = groupName;
@@ -175,7 +204,7 @@ void Network::requestDownloadFile(const QString &groupName, const QString &fileN
     writeJson(obj);
 }
 
-void Network::requestDeleteFile(const QString &groupName, const QString &fileName) {
+void Network::requestDeleteFile(const QString& groupName, const QString& fileName) {
     QJsonObject obj;
     obj["cmd"] = "delete_file";
     obj["group_name"] = groupName;
@@ -183,7 +212,7 @@ void Network::requestDeleteFile(const QString &groupName, const QString &fileNam
     writeJson(obj);
 }
 
-void Network::requestImg(const QString &imgName, const QJsonObject &obj) {
+void Network::requestImg(const QString& imgName, const QJsonObject& obj) {
     if (!imgJsonMap.contains(imgName)) {
         QJsonObject tmpObj;
         tmpObj["cmd"] = "request_img";
@@ -193,8 +222,8 @@ void Network::requestImg(const QString &imgName, const QJsonObject &obj) {
     imgJsonMap.insert(imgName, obj);
 }
 
-void Network::handleJson(const QJsonObject &obj) {
-    QJsonDocument doc(obj);
+void Network::handleJson(const QJsonObject& obj) {
+//    QJsonDocument doc(obj);
     auto cmd = obj["cmd"].toString();
     if (cmd == "register") {
         auto status = obj["status"].toString();
@@ -212,7 +241,7 @@ void Network::handleJson(const QJsonObject &obj) {
                 requestImg(imgName, obj);
             } else {
                 auto list = obj["friends"].toArray();
-                for (auto item : list) {
+                for (const auto& item : qAsConst(list)) {
                     auto userObj = item.toObject();
                     auto imgName1 = userObj["img"].toString();
                     QFile file(QCoreApplication::applicationDirPath() + "/cached_images/" + imgName1);
@@ -222,7 +251,7 @@ void Network::handleJson(const QJsonObject &obj) {
                     }
                 }
                 QList<User> userList;
-                for (auto item : list) {
+                for (const auto& item : qAsConst(list)) {
                     auto userObj = item.toObject();
                     userList.append({userObj["name"].toString(), userObj["img"].toString(), userObj["ip"].toString(), userObj["new_msg"].toBool()});
                 }
@@ -237,7 +266,7 @@ void Network::handleJson(const QJsonObject &obj) {
         auto groupName = obj["group_name"].toString();
         auto members = obj["members"].toArray();
         QList<QString> list;
-        for (auto item : members) {
+        for (const auto& item : qAsConst(members)) {
             list.append(item.toString());
         }
         emit groupMemberListSignal(groupName, list);
@@ -326,13 +355,13 @@ void Network::handleJson(const QJsonObject &obj) {
         file.open(QIODevice::WriteOnly);
         file.write(array);
         file.close();
-        for (auto item : imgJsonMap.values(imgName)) {
+        for (auto& item : imgJsonMap.values(imgName)) {
             handleJson(item);
         }
         imgJsonMap.remove(imgName);
     } else if (cmd == "history") {
         auto records = obj["records"].toArray();
-        for (auto item : records) {
+        for (const auto& item : qAsConst(records)) {
             auto obj1 = item.toObject();
             auto type = obj1["type"].toString();
             auto msg = obj1["msg"].toString();
@@ -346,7 +375,7 @@ void Network::handleJson(const QJsonObject &obj) {
         }
         auto name = obj["name"].toString();
         QList<ChatRecord> list;
-        for (auto item : records) {
+        for (const auto& item : qAsConst(records)) {
             auto obj1 = item.toObject();
             list.append({obj1["sender"].toString(), obj1["msg"].toString(), obj1["type"].toString(), obj1["timestamp"].toString().toLongLong()});
         }
@@ -355,7 +384,7 @@ void Network::handleJson(const QJsonObject &obj) {
         auto groupName = obj["group_name"].toString();
         auto files = obj["files"].toArray();
         QList<GroupFile> list;
-        for (auto item : files) {
+        for (const auto& item : qAsConst(files)) {
             auto obj1 = item.toObject();
             list.append({obj1["file_name"].toString(), obj1["uploader"].toString(), obj1["size"].toString().toLongLong(), obj1["timestamp"].toString().toLongLong()});
         }
@@ -378,12 +407,12 @@ void Network::handleJson(const QJsonObject &obj) {
     }
 }
 
-void Network::onBinaryMessageReceived(QByteArray array) {
+void Network::onBinaryMessageReceived(const QByteArray& array) {
     auto document = QJsonDocument::fromJson(qUncompress(array));
     handleJson(document.object());
 }
 
-void Network::onTextMessageReceived(QString str) {
+void Network::onTextMessageReceived(const QString& str) {
     auto document = QJsonDocument::fromJson(str.toUtf8());
     handleJson(document.object());
 }

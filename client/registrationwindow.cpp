@@ -60,7 +60,7 @@ void RegistrationWindow::onRegistrationPushButtonClicked() {
         return;   // 谁他妈忘了return？
     }
     int spaceCnt = 0;
-    for (auto ch : username) {
+    for (auto& ch : username) {
         if (ch.isSpace()) {
             spaceCnt++;
         }

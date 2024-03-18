@@ -71,7 +71,7 @@
      <x>170</x>
      <y>30</y>
      <width>261</width>
-     <height>61</height>
+     <height>51</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout">
@@ -112,7 +112,7 @@
       </property>
       <item>
        <property name="text">
-        <string>好友</string>
+        <string>用户</string>
        </property>
       </item>
       <item>

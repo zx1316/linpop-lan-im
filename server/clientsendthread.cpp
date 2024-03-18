@@ -1,6 +1,6 @@
 #include "clientsendthread.h"
 
-ClientSendThread::ClientSendThread(const QString &path, const QString &serverIp, quint16 port, QObject *parent) : QThread{parent}, file(path), ip(serverIp), port(port) {
+ClientSendThread::ClientSendThread(const QString& path, const QString& serverIp, quint16 port, QObject *parent) : QThread{parent}, file(path), ip(serverIp), port(port) {
 
 }
 

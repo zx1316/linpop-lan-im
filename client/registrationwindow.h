@@ -31,7 +31,7 @@ class RegistrationWindow : public QWidget {
     Q_OBJECT
 
 public:
-    explicit RegistrationWindow(Network *network, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
+    RegistrationWindow(Network *network, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
     ~RegistrationWindow();
     void closeEvent(QCloseEvent *);
 

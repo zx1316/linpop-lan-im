@@ -32,33 +32,13 @@ private:
 public:
     explicit FriendInformation(const User& u, QWidget *parent = nullptr);
     ~FriendInformation();
-    void setNewMessage() {
-        newMsg = true;
-        this->setStyleSheet("#widget{border:1px solid black;background-color:chartreuse}");
-    }
-    void refreshColor() {
-        newMsg = false;
-        this->setStyleSheet((name[0] == '_' || ui->ip_label->text() != "离线") ? "#widget{border:1px solid black;background:Cyan}":"#widget{border:1px solid black;background:gray}");
-    }
-    void setIp(const QString &ip) {
-        if (ip == "") {
-            ui->ip_label->setText("离线");
-        } else {
-            ui->ip_label->setText(ip);
-        }
-    }
-    QString getIp() {
-        return ui->ip_label->text();
-    }
-    QString getName() {
-        return name;
-    }
-    void setIcon(const QString &imgName) {
-        ui->picture_label->setIcon(QIcon(QCoreApplication::applicationDirPath() + "/cached_images/" + imgName));
-    }
-    bool isNewMsg() {
-        return newMsg;
-    }
+    void setNewMessage();
+    void refreshColor();
+    void setIp(const QString &ip);
+    QString getIp() const;
+    QString getName() const;
+    void setIcon(const QString& imgName);
+    bool isNewMsg() const;
 
 private slots:
     void onUndefinedButtonClicked();

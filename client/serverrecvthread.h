@@ -23,7 +23,7 @@ class ServerRecvThread : public QThread {
     Q_OBJECT
 
 public:
-    explicit ServerRecvThread(const QString &path, const QString &clientIp, QObject *parent = nullptr);
+    ServerRecvThread(const QString& path, const QString& clientIp, QObject *parent = nullptr);
     ~ServerRecvThread();
     void run() override;
 

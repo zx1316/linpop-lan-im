@@ -138,7 +138,7 @@ bool Database::insertChatRecord(const QString &sender, const QString &receiver, 
     return flag;
 }
 
-QList<ChatRecord> Database::selectChatRecords(const QString &name1, const QString &name2, qint64 start, qint64 end, quint16 limit) {
+QList<ChatRecord> Database::selectChatRecords(const QString& name1, const QString& name2, qint64 start, qint64 end, quint16 limit) {
     QList<ChatRecord> list;
     lock.lockForRead();
     QSqlQuery query1(m_db);
@@ -173,7 +173,7 @@ QList<ChatRecord> Database::selectChatRecords(const QString &name1, const QStrin
     return list;
 }
 
-bool Database::insertFriend(const QString &name1, const QString &name2) {
+bool Database::insertFriend(const QString& name1, const QString& name2) {
     lock.lockForWrite();
     QSqlQuery query(m_db);
     QString insert_friend = "insert into friend values(?, ?, ?)";
@@ -192,7 +192,7 @@ bool Database::insertFriend(const QString &name1, const QString &name2) {
     return flag;
 }
 
-bool Database::deleteFriend(const QString &name1, const QString &name2) {
+bool Database::deleteFriend(const QString& name1, const QString& name2) {
     lock.lockForWrite();
     QSqlQuery query(m_db);
     query.prepare("delete from friend where friend1 = ? and friend2 = ? or friend1 = ? and friend2 = ?;");
@@ -211,7 +211,7 @@ bool Database::deleteFriend(const QString &name1, const QString &name2) {
     return flag;
 }
 
-QList<User> Database::selectFriends(const QString &name) {
+QList<User> Database::selectFriends(const QString& name) {
     lock.lockForRead();
     QSqlQuery query(m_db);
     QSqlQuery query1(m_db);
@@ -243,7 +243,7 @@ QList<User> Database::selectFriends(const QString &name) {
     return list;
 }
 
-bool Database::insertImg(const QString &imgName, const QByteArray &data) {
+bool Database::insertImg(const QString& imgName, const QByteArray& data) {
     lock.lockForWrite();
     QSqlQuery query(m_db);
     query.prepare("insert into image values(?, ?);");
@@ -260,7 +260,7 @@ bool Database::insertImg(const QString &imgName, const QByteArray &data) {
     return flag;
 }
 
-QByteArray Database::selectImg(const QString &imgName) {
+QByteArray Database::selectImg(const QString& imgName) {
     lock.lockForRead();
     QSqlQuery query(m_db);
     query.prepare("select data from image where img_name = ?;");
@@ -278,7 +278,7 @@ QByteArray Database::selectImg(const QString &imgName) {
     return array;
 }
 
-bool Database::insertFile(const QString &groupName, const QString &fileName, const QString &uploader, qint64 size, qint64 timestamp) {
+bool Database::insertFile(const QString& groupName, const QString& fileName, const QString& uploader, qint64 size, qint64 timestamp) {
     lock.lockForWrite();
     QSqlQuery query(m_db);
     query.prepare("insert into file values(?, ?, ?, ?, ?);");
@@ -298,7 +298,7 @@ bool Database::insertFile(const QString &groupName, const QString &fileName, con
     return flag;
 }
 
-GroupFile Database::selectFile(const QString &groupName, const QString &fileName) {
+GroupFile Database::selectFile(const QString& groupName, const QString& fileName) {
     lock.lockForRead();
     QSqlQuery query(m_db);
     query.prepare("select group_name, file_name, uploader, size, timestamp from file where group_name = ? and file_name = ?;");
@@ -320,7 +320,7 @@ GroupFile Database::selectFile(const QString &groupName, const QString &fileName
     return gf;
 }
 
-QList<GroupFile> Database::selectFiles(const QString &groupName) {
+QList<GroupFile> Database::selectFiles(const QString& groupName) {
     lock.lockForRead();
     QSqlQuery query(m_db);
     query.prepare("select group_name, file_name, uploader, size, timestamp from file where group_name = ? order by timestamp desc;");
@@ -339,7 +339,7 @@ QList<GroupFile> Database::selectFiles(const QString &groupName) {
     return list;
 }
 
-bool Database::deleteFile(const QString &groupName, const QString &fileName) {
+bool Database::deleteFile(const QString& groupName, const QString& fileName) {
     lock.lockForWrite();
     QSqlQuery query(m_db);
     query.prepare("delete from file where group_name = ? and file_name = ?;");
@@ -356,7 +356,7 @@ bool Database::deleteFile(const QString &groupName, const QString &fileName) {
     return flag;
 }
 
-bool Database::updateOfflineTime(const QString &name, qint64 timestamp) {
+bool Database::updateOfflineTime(const QString& name, qint64 timestamp) {
     lock.lockForWrite();
     QSqlQuery query(m_db);
     query.prepare("update user set offline_timestamp = ? where name = ?;");

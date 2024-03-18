@@ -1,6 +1,6 @@
 #include "serversendthread.h"
 
-ServerSendThread::ServerSendThread(const QString &path, const QString &clientIp, QObject *parent) : QThread{parent}, file(path), ip(clientIp) {
+ServerSendThread::ServerSendThread(const QString& path, const QString& clientIp, QObject *parent) : QThread{parent}, file(path), ip(clientIp) {
 
 }
 
