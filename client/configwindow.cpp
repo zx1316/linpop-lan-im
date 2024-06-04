@@ -1,13 +1,14 @@
-#include "configwindow.h"
-#include "ui_configwindow.h"
 #include <QMessageBox>
 #include <QDir>
+#include "configwindow.h"
+#include "ui_configwindow.h"
+#include "network.h"
 
-ConfigWindow::ConfigWindow(Network *network, QWidget *parent) : QWidget(parent), ui(new Ui::ConfigWindow), network(network) {
+ConfigWindow::ConfigWindow(QWidget *parent) : QWidget(parent), ui(new Ui::ConfigWindow) {
     ui->setupUi(this);
     this->setAttribute(Qt::WA_QuitOnClose, false);
-    ui->ipEdit->setText(network->getIp());
-    ui->portEdit->setText(QString::number(network->getPort()));
+    ui->ipEdit->setText(Network::getInstance().getIp());
+    ui->portEdit->setText(QString::number(Network::getInstance().getPort()));
     connect(ui->confirmButton, &QPushButton::clicked, this, &ConfigWindow::onConfirmClicked);
     connect(ui->clearCacheButton, &QPushButton::clicked, this, &ConfigWindow::onClearCacheClicked);
 }
@@ -17,7 +18,7 @@ ConfigWindow::~ConfigWindow() {
 }
 
 void ConfigWindow::onConfirmClicked() {
-    network->setIpAndPort(ui->ipEdit->text(), ui->portEdit->text().toUShort());
+    Network::getInstance().setIpAndPort(ui->ipEdit->text(), ui->portEdit->text().toUShort());
     close();
 }
 

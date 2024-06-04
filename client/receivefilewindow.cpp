@@ -1,7 +1,7 @@
-#include "receivefilewindow.h"
-#include "ui_receivefilewindow.h"
 #include <QMessageBox>
 #include <QTimer>
+#include "receivefilewindow.h"
+#include "ui_receivefilewindow.h"
 
 ReceiveFileWindow::ReceiveFileWindow(const QString& path, const QString& name, const QString& ip, QWidget *parent) : QWidget(parent), ui(new Ui::ReceiveFileWindow) {
     ui->setupUi(this);

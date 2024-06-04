@@ -1,20 +1,22 @@
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QBuffer>
 #include "indexwindow.h"
 #include "ui_indexwindow.h"
 #include "creategroupwindow.h"
 #include "addfriendswindow.h"
 #include "receivefilewindow.h"
 #include "loginwindow.h"
-#include <QMessageBox>
-#include <QFileDialog>
-#include <QBuffer>
+#include "mihoyolauncher.h"
+#include "network.h"
 
-IndexWindow::IndexWindow(const QString& username, const QString& img, const QList<User>& friendList, Network *network, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::IndexWindow), network(network), launcher(launcher) {
+IndexWindow::IndexWindow(const QString& username, const QString& img, const QList<User>& friendList, QWidget *parent) : QWidget(parent), ui(new Ui::IndexWindow) {
     ui->setupUi(this);
     this->setAttribute(Qt::WA_DeleteOnClose, true);
 
     //初始化用户的昵称，ip信息，头像
     ui->username_label->setText(username);
-    ui->ip_label->setText(network->getIp());
+    ui->ip_label->setText(Network::getInstance().getIp());
     ui->picture->setPixmap(QPixmap::fromImage(QImage(QCoreApplication::applicationDirPath() + "/cached_images/" + img)));
 
     //初始化好友列表
@@ -35,24 +37,25 @@ IndexWindow::IndexWindow(const QString& username, const QString& img, const QLis
     connect(ui->create_group_button, SIGNAL(clicked()), this, SLOT(onCreateGroupButtonClicked()));
     connect(ui->changeImageButton, &QPushButton::clicked, this, &IndexWindow::onChangeImgButtonClicked);
 
-    connect(network, &Network::groupMemberListSignal, this, &IndexWindow::onGroupMemberListFeedbackSignal);
-    connect(network, &Network::createGroupSuccessSignal, this, &IndexWindow::onCreateGroupSuccessFeedbackSignal);
-    connect(network, &Network::createGroupFailSignal, this, &IndexWindow::onCreateGroupFailFeedbackSignal);
-    connect(network, &Network::addFriendSuccessSignal, this, &IndexWindow::onAddFriendSuccessFeedbackSignal);
-    connect(network, &Network::addFriendFailSignal, this, &IndexWindow::onAddFriendFailFeedbackSignal);
-    connect(network, &Network::beAddedSignal, this, &IndexWindow::onBeAddedFeedbackSignal);
-    connect(network, &Network::beDeletedSignal, this, &IndexWindow::onBeDeletedFeedbackSignal);
-    connect(network, &Network::friendOnlineSignal, this, &IndexWindow::onFriendOnlineFeedbackSignal);
-    connect(network, &Network::friendOfflineSignal, this, &IndexWindow::onFriendOfflineFeedbackSignal);
-    connect(network, &Network::friendImageChangedSignal, this, &IndexWindow::onFriendImageChangedFeedbackSignal);
-    connect(network, &Network::newMsgSignal, this, &IndexWindow::onNewMsgFeedbackSignal);
-    connect(network, &Network::requestFileSignal, this, &IndexWindow::onRequestFileFeedbackSignal);
-    connect(network, &Network::acceptFileSignal, this, &IndexWindow::onAcceptFileFeedbackSignal);
-    connect(network, &Network::rejectFileSignal, this, &IndexWindow::onRejectFileFeedbackSignal);
-    connect(network, &Network::historySignal, this, &IndexWindow::onHistoryFeedbackSignal);
-    connect(network, &Network::fileListSignal, this, &IndexWindow::onFileListFeedbackSignal);
-    connect(network, &Network::sendMsgSuccessSignal, this, &IndexWindow::onSendMsgSuccessSignal);
-    connect(network, &Network::disconnectedSignal, this, &IndexWindow::onDisconnectedSignal);
+    auto& network = Network::getInstance();
+    connect(&network, &Network::groupMemberListSignal, this, &IndexWindow::onGroupMemberListFeedbackSignal);
+    connect(&network, &Network::createGroupSuccessSignal, this, &IndexWindow::onCreateGroupSuccessFeedbackSignal);
+    connect(&network, &Network::createGroupFailSignal, this, &IndexWindow::onCreateGroupFailFeedbackSignal);
+    connect(&network, &Network::addFriendSuccessSignal, this, &IndexWindow::onAddFriendSuccessFeedbackSignal);
+    connect(&network, &Network::addFriendFailSignal, this, &IndexWindow::onAddFriendFailFeedbackSignal);
+    connect(&network, &Network::beAddedSignal, this, &IndexWindow::onBeAddedFeedbackSignal);
+    connect(&network, &Network::beDeletedSignal, this, &IndexWindow::onBeDeletedFeedbackSignal);
+    connect(&network, &Network::friendOnlineSignal, this, &IndexWindow::onFriendOnlineFeedbackSignal);
+    connect(&network, &Network::friendOfflineSignal, this, &IndexWindow::onFriendOfflineFeedbackSignal);
+    connect(&network, &Network::friendImageChangedSignal, this, &IndexWindow::onFriendImageChangedFeedbackSignal);
+    connect(&network, &Network::newMsgSignal, this, &IndexWindow::onNewMsgFeedbackSignal);
+    connect(&network, &Network::requestFileSignal, this, &IndexWindow::onRequestFileFeedbackSignal);
+    connect(&network, &Network::acceptFileSignal, this, &IndexWindow::onAcceptFileFeedbackSignal);
+    connect(&network, &Network::rejectFileSignal, this, &IndexWindow::onRejectFileFeedbackSignal);
+    connect(&network, &Network::historySignal, this, &IndexWindow::onHistoryFeedbackSignal);
+    connect(&network, &Network::fileListSignal, this, &IndexWindow::onFileListFeedbackSignal);
+    connect(&network, &Network::sendMsgSuccessSignal, this, &IndexWindow::onSendMsgSuccessSignal);
+    connect(&network, &Network::disconnectedSignal, this, &IndexWindow::onDisconnectedSignal);
 }
 
 /*
@@ -136,8 +139,8 @@ QString IndexWindow::fileSizeFormatter(qint64 size) {
 
 // button slots
 void IndexWindow::onAddFriendButtonClicked() {
-    launcher->gachaLaunch();
-    _add_friends_window = new AddFriendsWindow(ui->username_label->text(), launcher);
+    MiHoYoLauncher::getInstance().gachaLaunch();
+    _add_friends_window = new AddFriendsWindow(ui->username_label->text());
     connect(_add_friends_window, &AddFriendsWindow::addFriendRequestSignal, this, &IndexWindow::onAddFriendRequestSignal);
     connect(_add_friends_window, &AddFriendsWindow::windowClosed, this, &IndexWindow::onAddFriendWindowClosed);
     _add_friends_window->show();
@@ -145,14 +148,14 @@ void IndexWindow::onAddFriendButtonClicked() {
 }
 
 void IndexWindow::onCreateGroupButtonClicked() {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     QList<QString> friendList;
     for (auto& f : ui->scrollAreaWidgetContents->findChildren<FriendInformation *>()) {
         if (f->getName().at(0) != '_') {
             friendList.append(f->getName());
         }
     }
-    _create_group_window = new CreateGroupWindow(friendList, ui->username_label->text(), launcher);
+    _create_group_window = new CreateGroupWindow(friendList, ui->username_label->text());
     connect(_create_group_window, &CreateGroupWindow::createGroupRequestSignal, this, &IndexWindow::onCreateGroupRequestSignal);
     connect(_create_group_window, &CreateGroupWindow::windowClosed, this, &IndexWindow::onCreateGroupWindowClosed);
     _create_group_window->show();
@@ -160,7 +163,7 @@ void IndexWindow::onCreateGroupButtonClicked() {
 }
 
 void IndexWindow::onChangeImgButtonClicked() {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     auto path = QFileDialog::getOpenFileName(this, "选择一张png图片", "../", "Images (*.png)");
     if (path != "") {
         QImage originalImage(path);
@@ -181,16 +184,16 @@ void IndexWindow::onChangeImgButtonClicked() {
         if (!file.exists()) {
             squareImage.save(QCoreApplication::applicationDirPath() + "/cached_images/" + imgName, "PNG");
         }
-        network->requestChangeImg(imgName);
+        Network::getInstance().requestChangeImg(imgName);
     }
 }
 
 void IndexWindow::onChatWithFriendSignal(FriendInformation *fi) {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     QString name = fi->getName();
     if (!_chat_windows.contains(name)) {
         fi->refreshColor();
-        ChatWindow* chat_window = new ChatWindow(ui->username_label->text(), name, ui->ip_label->text(), launcher);
+        ChatWindow* chat_window = new ChatWindow(ui->username_label->text(), name, ui->ip_label->text());
         _chat_windows[name] = chat_window;
         connect(chat_window,&ChatWindow::sendMessageRequestSignal,this,&IndexWindow::onSendMessageRequestSignal);
         connect(chat_window,&ChatWindow::transferFileRequestSignal,this,&IndexWindow::onTransferFileRequestSignal);
@@ -202,18 +205,18 @@ void IndexWindow::onChatWithFriendSignal(FriendInformation *fi) {
         connect(chat_window,&ChatWindow::groupFileUploadSignal,this,&IndexWindow::onGroupFileUploadSignal);
         connect(chat_window,&ChatWindow::windowClosed, this, &IndexWindow::onChatWindowClosed);
         chat_window->show();
-        network->requestLatestHistory(name);
+        Network::getInstance().requestLatestHistory(name);
     }
 }
 
 void IndexWindow::onDeleteFriendSignal(FriendInformation *fi) {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     if (QMessageBox::question(this, "删除确认", "确定要删除该好友/聊天室吗？", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
         QString name = fi->getName();
         if (_chat_windows.contains(name)) {
             _chat_windows[name]->close();
         }
-        network->requestDeleteFriend(name);
+        Network::getInstance().requestDeleteFriend(name);
         deleteFriendFromUI(name);
     }
 }
@@ -316,7 +319,7 @@ void IndexWindow::onRequestFileFeedbackSignal(const QString& sender, const QStri
     if (QMessageBox::question(this, "传输文件请求", sender + "请求向您发送文件" + fileName + " (" + IndexWindow::fileSizeFormatter(size) + ")", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
         QString path = QFileDialog::getSaveFileName(this, "保存文件", "../" + fileName);
         if (path == "") {
-            network->requestRejectFile(sender);
+            Network::getInstance().requestRejectFile(sender);
         } else {
             QString ip;
             for (auto& f : ui->scrollAreaWidgetContents->findChildren<FriendInformation*>()) {
@@ -331,7 +334,7 @@ void IndexWindow::onRequestFileFeedbackSignal(const QString& sender, const QStri
             w->show();
         }
     } else {
-        network->requestRejectFile(sender);
+        Network::getInstance().requestRejectFile(sender);
     }
 }
 
@@ -379,7 +382,7 @@ void IndexWindow::onAddFriendRequestSignal(const QString& name) {
             return;
         }
     }
-    network->requestAddFriend(name);
+    Network::getInstance().requestAddFriend(name);
 }
 
 void IndexWindow::onAddFriendWindowClosed() {
@@ -401,7 +404,7 @@ void IndexWindow::onCreateGroupRequestSignal(const QString& groupName, const QSt
             return;
         }
     }
-    network->requestCreateGroup(groupName, imgName, list);
+    Network::getInstance().requestCreateGroup(groupName, imgName, list);
 }
 
 void IndexWindow::onCreateGroupWindowClosed() {
@@ -416,40 +419,40 @@ void IndexWindow::onChatWindowClosed(const QString& name) {
 
 void IndexWindow::onSendMessageRequestSignal(const QString& name, const QString& msg, const QString& type) {
     putFriendToFront(name);
-    network->requestSendMsg(name, msg, type);
+    Network::getInstance().requestSendMsg(name, msg, type);
 }
 
 void IndexWindow::onTransferFileRequestSignal(const QString& receiver, const QString& fileName, qint64 size) {
-    network->requestRequestFile(receiver, fileName, size);
+    Network::getInstance().requestRequestFile(receiver, fileName, size);
 }
 
 void IndexWindow::onChatHistoryRequestSignal(const QString& name, const QDate& start, const QDate& end) {
-    network->requestHistory(name, start, end);
+    Network::getInstance().requestHistory(name, start, end);
 }
 
 void IndexWindow::onGroupMemberRequestSignal(const QString& groupName) {
-    network->requestGroupMemberList(groupName);
+    Network::getInstance().requestGroupMemberList(groupName);
 }
 
 void IndexWindow::onGroupFileQuerySignal(const QString& groupName) {
-    network->requestGroupFileList(groupName);
+    Network::getInstance().requestGroupFileList(groupName);
 }
 
 void IndexWindow::onGroupFileDeleteSignal(const QString& groupName, const QString& fileName) {
-    network->requestDeleteFile(groupName, fileName);
+    Network::getInstance().requestDeleteFile(groupName, fileName);
 }
 
 void IndexWindow::onGroupFileDownloadSignal(const QString& groupName, const QString& fileName, quint16 port) {
-    network->requestDownloadFile(groupName, fileName, port);
+    Network::getInstance().requestDownloadFile(groupName, fileName, port);
 }
 
 void IndexWindow::onGroupFileUploadSignal(const QString& groupName, const QString& fileName, qint64 size, quint16 port) {
-    network->requestUploadFile(groupName, fileName, size, port);
+    Network::getInstance().requestUploadFile(groupName, fileName, size, port);
 }
 
 // sendFile
 void IndexWindow::onGetPort(const QString& name, quint16 port) {
-    network->requestAcceptFile(name, port);
+    Network::getInstance().requestAcceptFile(name, port);
 }
 
 void IndexWindow::closeEvent(QCloseEvent *) {
@@ -467,11 +470,12 @@ void IndexWindow::closeEvent(QCloseEvent *) {
     if (_create_group_window != nullptr) {
         _create_group_window->close();
     }
-    disconnect(network, nullptr, this, nullptr);
-    if (network->isDisconnected()) {
-        auto lw = new LoginWindow(network, launcher, ui->username_label->text());
+    auto& network = Network::getInstance();
+    disconnect(&network, nullptr, this, nullptr);
+    if (network.isDisconnected()) {
+        auto lw = new LoginWindow(ui->username_label->text());
         lw->show();
     } else {
-        network->disconnectFromServer();
+        network.disconnectFromServer();
     }
 }

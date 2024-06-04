@@ -1,4 +1,3 @@
-#include "network.h"
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -6,6 +5,12 @@
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QFile>
+#include "network.h"
+
+Network& Network::getInstance() {
+    static Network instance;
+    return instance;
+}
 
 Network::Network(QObject *parent) : QObject{parent} {
     socket.setMaxAllowedIncomingMessageSize(4 * 1024 * 1024);

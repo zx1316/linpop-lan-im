@@ -15,7 +15,6 @@
 #define CHATHISTORYWINDOW_H
 
 #include <QWidget>
-#include "mihoyolauncher.h"
 
 namespace Ui {
 class ChatHistoryWindow;
@@ -25,7 +24,7 @@ class ChatHistoryWindow : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ChatHistoryWindow(MiHoYoLauncher *launcher, QWidget *parent = nullptr);
+    explicit ChatHistoryWindow(QWidget *parent = nullptr);
     ~ChatHistoryWindow();
     void refreshRecords(const QString& html);
 
@@ -35,7 +34,6 @@ private slots:
 
 private:
     Ui::ChatHistoryWindow *ui;
-    MiHoYoLauncher *launcher;
 
 signals:
     void chatHistoryRequestSignal(const QDate&, const QDate&);

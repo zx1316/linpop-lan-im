@@ -20,8 +20,6 @@
 #define REGISTRATIONWINDOW_H
 
 #include <QWidget>
-#include <loginwindow.h>
-#include <network.h>
 
 namespace Ui {
 class RegistrationWindow;
@@ -31,7 +29,7 @@ class RegistrationWindow : public QWidget {
     Q_OBJECT
 
 public:
-    RegistrationWindow(Network *network, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
+    RegistrationWindow(QWidget *parent = nullptr);
     ~RegistrationWindow();
     void closeEvent(QCloseEvent *);
 
@@ -47,8 +45,6 @@ private slots:
 
 private:
     Ui::RegistrationWindow *ui;
-    Network *network;
-    MiHoYoLauncher *launcher;
     bool connectFlag = false;
 };
 

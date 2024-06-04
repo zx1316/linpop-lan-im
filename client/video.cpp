@@ -1,6 +1,6 @@
+#include <QPalette>
 #include "video.h"
 #include "ui_video.h"
-#include <QPalette>
 
 Video::Video(IndexWindow *w, QWidget *parent) : QWidget(parent), ui(new Ui::Video), w(w) {
     ui->setupUi(this);
@@ -11,7 +11,7 @@ Video::Video(IndexWindow *w, QWidget *parent) : QWidget(parent), ui(new Ui::Vide
     setAttribute(Qt::WA_DeleteOnClose);
     player = new QMediaPlayer;
     videoWidget = new QVideoWidget;
-    player->setMedia(QUrl("qrc:///launch.avi"));
+    player->setMedia(QUrl("qrc:///video/launch.avi"));
     player->setVideoOutput(videoWidget);
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setMargin(0);

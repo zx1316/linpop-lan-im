@@ -2,8 +2,6 @@
 #define ADDFRIENDS_H
 
 #include <QWidget>
-#include <QMessageBox>
-#include "mihoyolauncher.h"
 
 namespace Ui {
 class AddFriendsWindow;
@@ -13,7 +11,7 @@ class AddFriendsWindow : public QWidget {
     Q_OBJECT
 
 public:
-    AddFriendsWindow(const QString& selfName, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
+    AddFriendsWindow(const QString& selfName, QWidget *parent = nullptr);
     ~AddFriendsWindow();
     void onAddFriendSuccess();
     void onAddFriendFail();
@@ -25,7 +23,6 @@ private slots:
 
 private:
     Ui::AddFriendsWindow *ui;
-    MiHoYoLauncher *launcher;
     QString selfName;
 
 signals:

@@ -25,7 +25,6 @@
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <QMetaObject>
-#include "mihoyolauncher.h"
 #include "network.h"
 
 QT_BEGIN_NAMESPACE
@@ -36,7 +35,7 @@ class LoginWindow : public QWidget {
     Q_OBJECT
 
 public:
-    LoginWindow(Network *network, MiHoYoLauncher *launcher, const QString& name, QWidget *parent = nullptr);
+    LoginWindow(const QString& name, QWidget *parent = nullptr);
     ~LoginWindow();
 
 private slots:
@@ -57,8 +56,6 @@ public slots:
 
 private:
     Ui::LoginWindow *ui;
-    Network *network;
-    MiHoYoLauncher *launcher;
     bool connectFlag = false;
 
 signals:

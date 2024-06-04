@@ -1,5 +1,6 @@
 #ifndef CBUTTON_H
 #define CBUTTON_H
+
 #include <QPushButton>
 #include <QTimer>
 

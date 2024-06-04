@@ -1,8 +1,9 @@
+#include <QDesktopServices>
 #include "chathistorywindow.h"
 #include "ui_chathistorywindow.h"
-#include <QDesktopServices>
+#include "mihoyolauncher.h"
 
-ChatHistoryWindow::ChatHistoryWindow(MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::ChatHistoryWindow), launcher(launcher) {
+ChatHistoryWindow::ChatHistoryWindow(QWidget *parent) : QWidget(parent), ui(new Ui::ChatHistoryWindow) {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose, true);
     ui->endDate->setDate(QDate::currentDate());
@@ -22,7 +23,7 @@ ChatHistoryWindow::~ChatHistoryWindow() {
  * 功能描述:在点击查询按钮时向ChatWindow发出聊天历史记录请求。（请求起点）
  */
 void ChatHistoryWindow::onQueryButtonClicked() {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     QDate start = ui->startDate->date();
     QDate end = ui->endDate->date();
     ui->queryButton->setDisabled(true);

@@ -13,9 +13,7 @@
 #include "friendinformation.h"
 #include "addfriendswindow.h"
 #include "creategroupwindow.h"
-#include "mihoyolauncher.h"
 #include "chatwindow.h"
-#include "network.h"
 
 namespace Ui {
 class IndexWindow;
@@ -25,7 +23,7 @@ class IndexWindow : public QWidget {
     Q_OBJECT
 
 public:
-    IndexWindow(const QString& username, const QString& img, const QList<User>& friendList, Network *network, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
+    IndexWindow(const QString& username, const QString& img, const QList<User>& friendList, QWidget *parent = nullptr);
     ~IndexWindow();
     static QString fileSizeFormatter(qint64 size);
 
@@ -38,8 +36,6 @@ private:
     QHash<QString, ChatWindow *> _chat_windows;
     AddFriendsWindow *_add_friends_window = nullptr;
     CreateGroupWindow *_create_group_window = nullptr;
-    Network *network;
-    MiHoYoLauncher *launcher;
     void deleteFriendFromUI(const QString& name);
     void insertFriendToUI(const User& user);
     void putFriendToFront(const QString& name);

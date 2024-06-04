@@ -1,7 +1,9 @@
+#include <QMessageBox>
 #include "addfriendswindow.h"
 #include "ui_addfriendswindow.h"
+#include "mihoyolauncher.h"
 
-AddFriendsWindow::AddFriendsWindow(const QString& selfName, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::AddFriendsWindow), launcher(launcher), selfName(selfName) {
+AddFriendsWindow::AddFriendsWindow(const QString& selfName, QWidget *parent) : QWidget(parent), ui(new Ui::AddFriendsWindow), selfName(selfName) {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose, true);
     ui->name_search_line_edit->setPlaceholderText("请输入要添加的用户/聊天室名");
@@ -15,7 +17,7 @@ AddFriendsWindow::~AddFriendsWindow() {
 }
 
 void AddFriendsWindow::onSearchPushButtonClicked() {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     QString name = ui->name_search_line_edit->text();
     if (name == selfName) {
         QMessageBox::critical(this, "添加失败", "你不能添加自己");
@@ -31,7 +33,7 @@ void AddFriendsWindow::onSearchPushButtonClicked() {
 
 void AddFriendsWindow::onSecretButtonClicked() {
 #ifdef Q_OS_WIN
-    launcher->directLaunch();
+    MiHoYoLauncher::getInstance().directLaunch();
 #else
     QMessageBox::information(this, "悲报", "您当前的操作系统无法结交志同道合的朋友");
 #endif

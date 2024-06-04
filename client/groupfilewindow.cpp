@@ -1,11 +1,11 @@
-#include "groupfilewindow.h"
-#include "ui_groupfilewindow.h"
-#include <QDebug>
 #include <QDateTime>
 #include <QFileDialog>
+#include "groupfilewindow.h"
+#include "ui_groupfilewindow.h"
 #include "indexwindow.h"
+#include "mihoyolauncher.h"
 
-GroupFileWindow::GroupFileWindow(const QString& selfName, const QString& serverIp, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent),  ui(new Ui::GroupFileWindow), selfName(selfName), serverIp(serverIp), launcher(launcher) {
+GroupFileWindow::GroupFileWindow(const QString& selfName, const QString& serverIp, QWidget *parent) : QWidget(parent),  ui(new Ui::GroupFileWindow), selfName(selfName), serverIp(serverIp) {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose, true);
     auto table = ui->tableWidget;
@@ -43,7 +43,7 @@ GroupFileWindow::~GroupFileWindow() {
 }
 
 void GroupFileWindow::refreshFileList(const QList<GroupFile>& list) {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     auto table = ui->tableWidget;
     table->clearContents();
     table->setRowCount(list.size());
@@ -60,13 +60,13 @@ void GroupFileWindow::refreshFileList(const QList<GroupFile>& list) {
 }
 
 void GroupFileWindow::onRefreshClicked() {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     ui->refreshButton->setDisabled(true);
     emit groupFileQuerySignal();
 }
 
 void GroupFileWindow::onUploadClicked() {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     QString path = QFileDialog::getOpenFileName(this, "打开文件", "../");
     if (path != "") {
         ui->downloadButton->setDisabled(true);
@@ -108,7 +108,7 @@ void GroupFileWindow::onUploadClicked() {
 }
 
 void GroupFileWindow::onDownloadClicked() {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     if (selectedRow != -1) {
         QString path = QFileDialog::getSaveFileName(this, "保存文件", "../" + ui->tableWidget->selectedItems()[0]->text());
         if (path != "") {
@@ -137,7 +137,7 @@ void GroupFileWindow::onDownloadClicked() {
 }
 
 void GroupFileWindow::onDeleteClicked() {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     auto table = ui->tableWidget;
     if (selectedRow != -1 && table->selectedItems()[3]->text() == selfName) {
         if (QMessageBox::question(this, "警告", "您确定要删除该文件吗？", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {

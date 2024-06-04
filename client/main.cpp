@@ -1,13 +1,11 @@
-#include "loginwindow.h"
 #include <QApplication>
+#include "loginwindow.h"
+#include "mihoyolauncher.h"
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
-    // 单例常驻主函数栈
-    Network network;
-    MiHoYoLauncher launcher;
-    launcher.startScan();
-    LoginWindow *w = new LoginWindow(&network, &launcher, "");
+    MiHoYoLauncher::getInstance().startScan();
+    LoginWindow *w = new LoginWindow("");
     w->show();
     return a.exec();
 }

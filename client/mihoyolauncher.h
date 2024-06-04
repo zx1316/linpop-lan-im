@@ -10,13 +10,16 @@ class MiHoYoLauncher : public QObject {
     Q_OBJECT
 
 public:
-    explicit MiHoYoLauncher(QObject *parent = nullptr);
+    static MiHoYoLauncher& getInstance();
+    MiHoYoLauncher(const MiHoYoLauncher&) = delete;
+    MiHoYoLauncher& operator=(const MiHoYoLauncher&) = delete;
     ~MiHoYoLauncher();
     void directLaunch();
     void gachaLaunch();
     void startScan();
 
 private:
+    explicit MiHoYoLauncher(QObject *parent = nullptr);
     QNetworkAccessManager manager;
     QHash<QString, QThread *> threadMap;
     QVector<QString> paths;

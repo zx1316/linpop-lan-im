@@ -1,13 +1,13 @@
+#include <QCryptographicHash>
+#include <QDir>
 #include "loginwindow.h"
 #include "ui_loginwindow.h"
 #include "registrationwindow.h"
 #include "indexwindow.h"
 #include "video.h"
 #include "configwindow.h"
-#include <QCryptographicHash>
-#include <QDir>
 
-LoginWindow::LoginWindow(Network *network, MiHoYoLauncher *launcher, const QString& name, QWidget *parent) : QWidget(parent), ui(new Ui::LoginWindow), network(network), launcher(launcher) {
+LoginWindow::LoginWindow(const QString& name, QWidget *parent) : QWidget(parent), ui(new Ui::LoginWindow) {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose, true);
     QDir dir(QCoreApplication::applicationDirPath());
@@ -21,11 +21,12 @@ LoginWindow::LoginWindow(Network *network, MiHoYoLauncher *launcher, const QStri
     connect(ui->config_pushbutton, &QPushButton::clicked, this, &LoginWindow::onConfigClicked);
     connect(ui->login_pushbutton,SIGNAL(clicked()),this,SLOT(onLoginPushButtonClicked()));
     connect(ui->signup_pushbutton,SIGNAL(clicked()),this,SLOT(onSignupPushButtonClicked()));
-    connect(network, &Network::loginAlreadySignal, this, &LoginWindow::onloginAlready);
-    connect(network, &Network::loginUnauthorizedSignal, this, &LoginWindow::onloginUnauthorized);
-    connect(network, &Network::loginSuccessSignal, this, &LoginWindow::onloginSuccess);
-    connect(network, &Network::connectedSignal, this, &LoginWindow::onNetworkConnected);
-    connect(network, &Network::disconnectedSignal, this, &LoginWindow::onNetworkDisconnected);
+    auto& network = Network::getInstance();
+    connect(&network, &Network::loginAlreadySignal, this, &LoginWindow::onloginAlready);
+    connect(&network, &Network::loginUnauthorizedSignal, this, &LoginWindow::onloginUnauthorized);
+    connect(&network, &Network::loginSuccessSignal, this, &LoginWindow::onloginSuccess);
+    connect(&network, &Network::connectedSignal, this, &LoginWindow::onNetworkConnected);
+    connect(&network, &Network::disconnectedSignal, this, &LoginWindow::onNetworkDisconnected);
 }
 
 LoginWindow::~LoginWindow() {
@@ -58,17 +59,17 @@ void LoginWindow::onLoginPushButtonClicked()
         return;
     }
     ui->login_pushbutton->setEnabled(false);
-    network->connectToServer();
+    Network::getInstance().connectToServer();
 }
 
 void LoginWindow::onSignupPushButtonClicked() {
-    RegistrationWindow *r = new RegistrationWindow(network, launcher);
+    RegistrationWindow *r = new RegistrationWindow;
     r->show();
     this->close();
 }
 
 void LoginWindow::onConfigClicked() {
-    ConfigWindow *w = new ConfigWindow(network);
+    ConfigWindow *w = new ConfigWindow;
     w->show();
 }
 
@@ -84,7 +85,7 @@ void LoginWindow::onloginUnauthorized() {
 
 void LoginWindow::onloginSuccess(const QString& imgName, const QList<User>& list) {
     // 开始放视频喽
-    IndexWindow *w = new IndexWindow(ui->user_line_edit->text(), imgName, list, network, launcher);
+    IndexWindow *w = new IndexWindow(ui->user_line_edit->text(), imgName, list);
     Video *v = new Video(w);
     v->showFullScreen();
     this->close();
@@ -94,7 +95,7 @@ void LoginWindow::onNetworkConnected() {
     connectFlag = true;
     auto name = ui->user_line_edit->text();
     auto pwd = ui->password_line_edit->text();
-    network->requestLogin(ui->user_line_edit->text(), QCryptographicHash::hash((pwd + name).toUtf8(), QCryptographicHash::Md5).toHex());
+    Network::getInstance().requestLogin(ui->user_line_edit->text(), QCryptographicHash::hash((pwd + name).toUtf8(), QCryptographicHash::Md5).toHex());
 }
 
 void LoginWindow::onNetworkDisconnected() {

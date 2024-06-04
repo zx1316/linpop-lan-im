@@ -35,7 +35,7 @@ class ChatWindow : public QWidget {
     Q_OBJECT
 
 public:
-    ChatWindow(const QString& fromName, const QString& toName, const QString& serverIp, MiHoYoLauncher *, QWidget *parent = nullptr);
+    ChatWindow(const QString& fromName, const QString& toName, const QString& serverIp, QWidget *parent = nullptr);
     ~ChatWindow();
     // 主窗口发来的传送文件反馈
     void onAcceptTransferFileSignal(const QString& ip, int port);
@@ -64,7 +64,6 @@ private:
     ChatHistoryWindow *chatHistoryWindow = nullptr;
     FontSelectorWindow *fontWindow = nullptr;
     GroupMemberWindow *memberWindow = nullptr;
-    MiHoYoLauncher *launcher;
     QColor inputColor;
     bool isRecordOk = false;
 

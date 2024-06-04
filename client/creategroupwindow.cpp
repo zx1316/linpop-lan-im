@@ -1,10 +1,11 @@
-#include "creategroupwindow.h"
-#include "ui_creategroupwindow.h"
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QBuffer>
+#include "creategroupwindow.h"
+#include "ui_creategroupwindow.h"
+#include "mihoyolauncher.h"
 
-CreateGroupWindow::CreateGroupWindow(const QList<QString>& friendList, const QString& selfName, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::CreateGroupWindow), launcher(launcher), selfName(selfName) {
+CreateGroupWindow::CreateGroupWindow(const QList<QString>& friendList, const QString& selfName, QWidget *parent) : QWidget(parent), ui(new Ui::CreateGroupWindow), selfName(selfName) {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose, true);
     ui->unselectedList->addItems(friendList);
@@ -25,7 +26,7 @@ void CreateGroupWindow::onCreateGroupFailSignal() {
 }
 
 void CreateGroupWindow::onAddButtonClicked() {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     auto current = ui->unselectedList->currentRow();
     if (current >= 0) {
         auto item = ui->unselectedList->takeItem(current);
@@ -34,7 +35,7 @@ void CreateGroupWindow::onAddButtonClicked() {
 }
 
 void CreateGroupWindow::onRemoveButtonClicked() {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     auto current = ui->selectedList->currentRow();
     if (current > 0) {
         auto item = ui->selectedList->takeItem(current);
@@ -43,7 +44,7 @@ void CreateGroupWindow::onRemoveButtonClicked() {
 }
 
 void CreateGroupWindow::onCreateGroupButtonClicked() {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     QString group_name = ui->group_name->text();
     int spaceCnt = 0;
     for (auto& ch : group_name) {
@@ -83,7 +84,7 @@ void CreateGroupWindow::onCreateGroupButtonClicked() {
 }
 
 void CreateGroupWindow::onSelectImgButtonClicked() {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     auto path = QFileDialog::getOpenFileName(this, "选择一张png图片", "../", "Images (*.png)");
     if (path != "") {
         QImage originalImage(path);

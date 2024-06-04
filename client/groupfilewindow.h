@@ -6,7 +6,6 @@
 #include "network.h"
 #include "serverrecvthread.h"
 #include "serversendthread.h"
-#include "mihoyolauncher.h"
 
 namespace Ui {
 class GroupFileWindow;
@@ -16,7 +15,7 @@ class GroupFileWindow : public QWidget {
     Q_OBJECT
 
 public:
-    GroupFileWindow(const QString& selfName, const QString& serverIp, MiHoYoLauncher *launcher, QWidget *parent = nullptr);
+    GroupFileWindow(const QString& selfName, const QString& serverIp, QWidget *parent = nullptr);
     ~GroupFileWindow();
     void refreshFileList(const QList<GroupFile>& list);
 
@@ -24,7 +23,6 @@ private:
     Ui::GroupFileWindow *ui;
     QString selfName;
     QString serverIp;
-    MiHoYoLauncher *launcher;
     ServerSendThread *sendThread = nullptr;
     ServerRecvThread *recvThread = nullptr;
     int selectedRow = -1;

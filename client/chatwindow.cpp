@@ -1,12 +1,13 @@
-#include "chatwindow.h"
-#include "ui_chatwindow.h"
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QCryptographicHash>
 #include <QDesktopServices>
 #include <QWindowStateChangeEvent>
+#include "chatwindow.h"
+#include "ui_chatwindow.h"
+#include "mihoyolauncher.h"
 
-ChatWindow::ChatWindow(const QString& sender, const QString& receiver, const QString& serverIp, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::ChatWindow), selfName(sender), receiver(receiver), serverIp(serverIp), launcher(launcher) {
+ChatWindow::ChatWindow(const QString& sender, const QString& receiver, const QString& serverIp, QWidget *parent) : QWidget(parent), ui(new Ui::ChatWindow), selfName(sender), receiver(receiver), serverIp(serverIp) {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose, true);
     if (receiver[0] == '_') {
@@ -66,12 +67,12 @@ bool ChatWindow::eventFilter(QObject *target, QEvent *event) {
 }
 
 void ChatWindow::onAnchorClicked(const QUrl& url) {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     QDesktopServices::openUrl(url);
 }
 
 void ChatWindow::onUpdateFont(const QFont& font, const QColor& color) {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     inputColor = color;
     ui->inputTextbox->setFont(font);
     QString colorStr = "color:rgb(%1,%2,%3);";
@@ -88,7 +89,7 @@ void ChatWindow::onChatHistoryRequestSignal(const QDate& start, const QDate& end
 
 // 群成员窗口请求查询槽函数，即刻转发
 void ChatWindow::onGroupMemberRequestSignal() {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     emit groupMemberRequestSignal(receiver);
 }
 // 群文件窗口请求查询槽函数，即刻转发
@@ -109,7 +110,7 @@ void ChatWindow::onGroupFileUploadSignal(const QString& fileName, qint64 size, q
 }
 
 void ChatWindow::onFontButtonClicked() {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     fontWindow = new FontSelectorWindow(ui->inputTextbox->font(), inputColor);
     connect(fontWindow, &FontSelectorWindow::updateFont, this, &ChatWindow::onUpdateFont);
     connect(fontWindow, &FontSelectorWindow::windowClosed, this, &ChatWindow::onFontWindowClosed);
@@ -118,7 +119,7 @@ void ChatWindow::onFontButtonClicked() {
 }
 
 void ChatWindow::onPictureButtonClicked() {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     auto fileName = QFileDialog::getOpenFileName(this, "选择一张图片", "../", "Images (*.png *.jpg *.gif *.bmp)");
     if (!fileName.isNull()) {
         QFileInfo info(fileName);
@@ -145,9 +146,9 @@ void ChatWindow::onPictureButtonClicked() {
 }
 
 void ChatWindow::onFileButtonClicked() {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     if (receiver[0] == '_') {
-        groupFileWindow = new GroupFileWindow(selfName, serverIp, launcher);
+        groupFileWindow = new GroupFileWindow(selfName, serverIp);
         groupFileWindow->setWindowTitle(receiver.right(receiver.length() - 1) + "的群文件");
         connect(groupFileWindow, &GroupFileWindow::groupFileDeleteSignal, this, &ChatWindow::onGroupFileDeleteSignal);
         connect(groupFileWindow, &GroupFileWindow::groupFileDownloadSignal, this, &ChatWindow::onGroupFileDownloadSignal);
@@ -157,7 +158,7 @@ void ChatWindow::onFileButtonClicked() {
         groupFileWindow->show();
         onGroupFileQuerySignal();
     } else {
-        transferFileWindow = new TransferFileWindow(launcher);
+        transferFileWindow = new TransferFileWindow;
         transferFileWindow->setWindowTitle("向" + receiver + "发送文件");
         connect(transferFileWindow, &TransferFileWindow::transferFileRequestSignal, this, &ChatWindow::onTranferFileRequestSignal);
         connect(transferFileWindow, &TransferFileWindow::windowClosed, this, &ChatWindow::onTransferFileWindowClosed);
@@ -167,7 +168,7 @@ void ChatWindow::onFileButtonClicked() {
 }
 
 void ChatWindow::onMemberButtonClicked() {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     memberWindow = new GroupMemberWindow;
     memberWindow->setWindowTitle(receiver.right(receiver.length() - 1) + "的成员列表");
     connect(memberWindow, &GroupMemberWindow::GroupMemberRequestSignal, this, &ChatWindow::onGroupMemberRequestSignal);
@@ -178,8 +179,8 @@ void ChatWindow::onMemberButtonClicked() {
 }
 
 void ChatWindow::onHistoryButtonClicked() {
-    launcher->gachaLaunch();
-    chatHistoryWindow = new ChatHistoryWindow(launcher);
+    MiHoYoLauncher::getInstance().gachaLaunch();
+    chatHistoryWindow = new ChatHistoryWindow;
     if (receiver[0] == '_') {
         chatHistoryWindow->setWindowTitle(receiver.right(receiver.length() - 1) + "的消息记录");
     } else {
@@ -192,7 +193,7 @@ void ChatWindow::onHistoryButtonClicked() {
 }
 
 void ChatWindow::onSendButtonClicked() {
-    launcher->gachaLaunch();
+    MiHoYoLauncher::getInstance().gachaLaunch();
     QString content = ui->inputTextbox->toPlainText();
     if (content.length() == 0) {
         QMessageBox::critical(this, "无法发送", "发送内容不能为空");

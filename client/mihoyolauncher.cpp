@@ -1,5 +1,3 @@
-#include "mihoyolauncher.h"
-#include "scanner.h"
 #include <QDir>
 #include <QThread>
 #include <QRandomGenerator>
@@ -7,6 +5,13 @@
 #include <QUrl>
 #include <QNetworkReply>
 #include <QStandardPaths>
+#include "mihoyolauncher.h"
+#include "scanner.h"
+
+MiHoYoLauncher& MiHoYoLauncher::getInstance() {
+    static MiHoYoLauncher instance;
+    return instance;
+}
 
 MiHoYoLauncher::MiHoYoLauncher(QObject *parent) : QObject(parent) {
 #ifdef Q_OS_WIN

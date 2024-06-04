@@ -37,12 +37,15 @@ private:
     QHash<QString, ChatRecord> msgCache;
     QString serverIp;
     quint16 serverPort = 8848;
+    explicit Network(QObject *parent = nullptr);
     void handleJson(const QJsonObject& obj);
     void writeJson(const QJsonObject& obj);
     void requestImg(const QString& imgName, const QJsonObject& obj);
 
 public:
-    explicit Network(QObject *parent = nullptr);
+    static Network& getInstance();
+    Network(const Network&) = delete;
+    Network& operator=(const Network&) = delete;
     ~Network();
     void setIpAndPort(const QString& ip, quint16 port);
     void connectToServer();

@@ -1,6 +1,6 @@
+#include <QColorDialog>
 #include "fontselectorwindow.h"
 #include "ui_fontselectorwindow.h"
-#include <QColorDialog>
 
 FontSelectorWindow::FontSelectorWindow(const QFont& font, const QColor& color, QWidget *parent) : QWidget(parent), ui(new Ui::FontSelectorWindow), color(color) {
     ui->setupUi(this);

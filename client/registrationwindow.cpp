@@ -1,11 +1,12 @@
-#include "registrationwindow.h"
-#include "ui_registrationwindow.h"
-#include "loginwindow.h"
 #include <QFileDialog>
 #include <QCryptographicHash>
 #include <QBuffer>
+#include "registrationwindow.h"
+#include "ui_registrationwindow.h"
+#include "loginwindow.h"
+#include "network.h"
 
-RegistrationWindow::RegistrationWindow(Network *network, MiHoYoLauncher *launcher, QWidget *parent) : QWidget(parent), ui(new Ui::RegistrationWindow), network(network), launcher(launcher) {
+RegistrationWindow::RegistrationWindow(QWidget *parent) : QWidget(parent), ui(new Ui::RegistrationWindow) {
     ui->setupUi(this);
     this->setAttribute(Qt::WA_DeleteOnClose, true);
     //绑定回车键触发跳转槽函数
@@ -16,10 +17,11 @@ RegistrationWindow::RegistrationWindow(Network *network, MiHoYoLauncher *launche
     connect(ui->registration_pushbutton,SIGNAL(clicked()), this, SLOT(onRegistrationPushButtonClicked()));
     connect(ui->back_to_login_pushbutton, &QPushButton::clicked, this, &RegistrationWindow::close);
     connect(ui->selectImageButton, &QPushButton::clicked, this, &RegistrationWindow::onSelectImgButtonClicked);
-    connect(network, &Network::connectedSignal, this, &RegistrationWindow::onNetworkConnected);
-    connect(network, &Network::disconnectedSignal, this, &RegistrationWindow::onNetworkDisconnected);
-    connect(network, &Network::registerSuccessSignal, this, &RegistrationWindow::onRegisterSuccess);
-    connect(network, &Network::registerFailSignal, this, &RegistrationWindow::onRegisterFail);
+    auto& network = Network::getInstance();
+    connect(&network, &Network::connectedSignal, this, &RegistrationWindow::onNetworkConnected);
+    connect(&network, &Network::disconnectedSignal, this, &RegistrationWindow::onNetworkDisconnected);
+    connect(&network, &Network::registerSuccessSignal, this, &RegistrationWindow::onRegisterSuccess);
+    connect(&network, &Network::registerFailSignal, this, &RegistrationWindow::onRegisterFail);
 }
 
 RegistrationWindow::~RegistrationWindow() {
@@ -77,11 +79,11 @@ void RegistrationWindow::onRegistrationPushButtonClicked() {
         QMessageBox::critical(this, "注册失败", "请设置头像");
         return;
     }
-    network->connectToServer();
+    Network::getInstance().connectToServer();
 }
 
 void RegistrationWindow::closeEvent(QCloseEvent *event) {
-    auto lw = new LoginWindow(network, launcher, "");
+    auto lw = new LoginWindow("");
     lw->show();
 }
 
@@ -99,7 +101,7 @@ void RegistrationWindow::onNetworkConnected() {
     if (!file.exists()) {
         image.save(QCoreApplication::applicationDirPath() + "/cached_images/" + imgName, "PNG");
     }
-    network->requestRegister(name, QCryptographicHash::hash((pwd + name).toUtf8(), QCryptographicHash::Md5).toHex(), array.toBase64());
+    Network::getInstance().requestRegister(name, QCryptographicHash::hash((pwd + name).toUtf8(), QCryptographicHash::Md5).toHex(), array.toBase64());
     ui->registration_pushbutton->setEnabled(false);
 }
 

@@ -91,5 +91,4 @@ DISTFILES += \
     uac.manifest
 
 RESOURCES += \
-    icon.qrc \
-    video.qrc
+    resources.qrc

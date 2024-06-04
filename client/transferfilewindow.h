@@ -17,7 +17,6 @@
 #include <QPushButton>
 #include <QThread>
 #include <QMessageBox>
-#include "mihoyolauncher.h"
 #include "clientsendthread.h"
 
 namespace Ui {
@@ -28,7 +27,7 @@ class TransferFileWindow : public QWidget {
     Q_OBJECT
 
 public:
-    explicit TransferFileWindow(MiHoYoLauncher *, QWidget *parent = nullptr);
+    explicit TransferFileWindow(QWidget *parent = nullptr);
     ~TransferFileWindow();
     void onAcceptTransferFileSignal(const QString& ip, int port);
     void onRejectTransferFileSignal();
@@ -39,7 +38,6 @@ private:
     ClientSendThread *thread = nullptr;
     QString _receiver_ip;
     int _port;
-    MiHoYoLauncher *launcher;
 
 private slots:
     void onOpenFileButtonClicked();
