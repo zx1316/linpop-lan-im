@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icon/folder.svg</file>
+        <file>icon/history.svg</file>
+        <file>icon/image.svg</file>
+        <file>icon/people.svg</file>
+        <file>icon/typography.svg</file>
+        <file>video/launch.avi</file>
+    </qresource>
+</RCC>
